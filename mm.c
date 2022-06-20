@@ -42,6 +42,7 @@
 
 /* do not change the following! */
 #ifdef DRIVER
+
 /* create aliases for driver tests */
 #define malloc mm_malloc
 #define free mm_free
@@ -52,12 +53,13 @@
 #endif /* DRIVER */
 
 /* What is the correct alignment? 8 bytes for x86 16 bytes for x86-64 */
+// Make it 24 bytes so you can have a header, footer and 2 pointers
 #define ALIGNMENT 16
 
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
-void *free_root  = NULL;
-void *curr_pos = NULL;
+// static char *free_root = NULL; // The root of the the free list
+static char *curr_pos = NULL;
 
 
 /* rounds up to the nearest multiple of ALIGNMENT */
@@ -70,9 +72,28 @@ static size_t align(size_t x){
  */
 bool mm_init(void){
 
-    // Allocate a page (1 GiB)
+    // Initial allocate of 4 words
+    void *mem_brk = mem_sbrk(16);
+
+    // Initial allocation failed
+    if(mem_brk == NULL || *(int*)mem_brk == -1){
+        printf("Initial 16 byte allocation failed");
+        return false;
+    }
+
+    // Set unused blocks
+    put(mem_heap_lo(), 0);
+
+    // Set prologue block
+    put((char*)mem_heap_lo + 4, pack(8, 1));
+    put((char*)mem_heap_lo + 8, pack(8, 1));
+
+    // Set epilogue block 
+    put((char*)mem_heap_lo() + 12 , pack(0, 1));
+
+    // Allocate the first free block
     if(!allocate_page()){
-        print("Initial page allocation failed");
+        printf("Initial page allocation failed");
         return false;
     }
 
@@ -83,13 +104,12 @@ bool mm_init(void){
  * malloc
  */
 void* malloc(size_t size){
-
-    // add size + header + footer and allign (in bytes)
-    int block_size = align(size) + 32;
+    // size + header + footer and allign (in bytes)
+    int block_size = align(size+8);
 
     // Error check; sbreak failing is checked lower
     if(size == 0){ // size is 0
-        print("Malloc Returning NULL: size == 0\n");
+        printf("Malloc Returning NULL: size == 0");
         return NULL;
     }
 
@@ -112,41 +132,45 @@ void* malloc(size_t size){
     * Allocate pages if needed;
     * cast curr_pos to char to work in bytes
     */
-    void *tmp_pos = (char*)curr_pos + block_size;
+    void *tmp_pos = curr_pos + block_size;
 
     // allocate page if tmp_pos exceeds the current heap size
     while(tmp_pos > mem_heap_hi()){
         if(!allocate_page()){
+            printf("Page allocation failed during malloc");
             return NULL;
         }
     }
 
-    // Set the payload (curr_pos + 16 bytes) to 0
-    mem_memset( (char*)curr_pos + 16, 0, size);
-
-    // set the size and valid bit in the header and footer
+    // set the header and footer
+    put(curr_pos, pack(block_size, 1));
+    put(curr_pos + block_size - 4, pack(block_size, 1));   
 
     /*
     * set the newly allocated bits that arent
     * used in the malloc to the free list
-    * OR
-    * Maybe dont. If you dont, you can just
-    * understand that everything after curr_pos
-    * until mm_heap_hi() is free. This might 
-    * be a better option.
     */
 
-    curr_pos = tmp_pos;
-    return NULL;
+    // update & save 
+    curr_pos = (char*)tmp_pos;
+
+    // Repurpose tmp_pos for result
+    tmp_pos = (void*)(curr_pos - (block_size - 4));
+
+    // return payload location
+    return (tmp_pos);
 }
 
 /*
  * free
  */
-void free(void* ptr)
-{
-    /* IMPLEMENT THIS */
-    return;
+void free(void* payload_pointer)
+{   
+    size_t size = get_size(GHA(payload_pointer));
+
+    put(GHA(payload_pointer), pack(size, 0));
+    put(GFA(payload_pointer), pack(size, 0));
+    coalesce(payload_pointer);
 }
 
 /*
@@ -210,14 +234,133 @@ bool mm_checkheap(int lineno)
 bool allocate_page(){
 
     // Allocate a page (1 GiB)
-    int mem_brk = mem_sbrk(2e30);
+    void *block_pointer = mem_sbrk(4096);
 
     // Initial allocation failed
-    if(mem_brk == NULL || *(int*)mem_brk == -1){
-        print("Page allocation failed: heap size %ld/%ld bytes", mem_heap_size() + 2e30, MAX_HEAP_SIZE);
+    if(block_pointer == NULL || *(int*)block_pointer == -1){
+        printf("Page allocation failed: heap size %zu/%llu bytes", mem_heapsize() + 4096, MAX_HEAP_SIZE);
         return false;
     }
 
-    print("Page allocated: heap size %ld/%ld bytes", mem_heap_size(), MAX_HEAP_SIZE);
+    // Set footer and header blocks
+    put(block_pointer, pack(4096,0));
+    put((char*)block_pointer + 4096 - 8, pack(4096,0));
+
+    // Set prev/next free block
+    // memset((char*)block_pointer + 4, &free_root, 8);
+
+    // Set new epilogue header
+    put((char*)block_pointer + 4096 - 4, pack(0,1));
+    
+    // Update current position in heap 
+    curr_pos = coalesce(block_pointer);
+
+    printf("Page allocated: heap size %zu/%llu bytes", mem_heapsize(), MAX_HEAP_SIZE);
+
     return true;
 }
+
+/*
+* Pack: create a value for the header/footer
+*/
+int pack(int size, int alloc){
+    // Bitwise or size and alloc then extend to 32 bits (4 bytes)
+    return (0x00000000 | (size | alloc));
+}
+
+/*
+* GHA: returns the addressof the header via a payload pointer
+*/
+char *GHA(void *payload_pointer){
+    return((char*)payload_pointer - 4);
+}
+
+/*
+* GFA: returns the address of the footer via a payload pointer
+*/
+char *GFA(void *payload_pointer){
+    return((char*)payload_pointer + get_size(GHA(payload_pointer)) - 8);    
+}
+
+/*
+* get: returns a word from addr as an int
+*   - Used in conjuction with get_size & get_alloc
+*/
+unsigned int get(void *addr){
+    return(*(unsigned int *)addr);
+}
+
+/*
+* get_size: gets the size of a header/footer in bytes
+*/
+unsigned int get_size(void *addr){
+    return(get(addr) & ~0x15);
+}
+
+/*
+* get_alloc: returns if the addr block is allocated
+*/
+int get_alloc(void *addr){
+    return(get(addr) & 0x1);
+}
+
+/*
+* put: puts a header/footer value at addr
+*/ 
+void put(void* addr, int val){
+    *(unsigned int *)addr = val;
+}
+
+/*
+* prev_fblk: gets the address of the previous free blocks payload pointer
+*/
+char *prev_blk(void* payload_pointer){
+    return((char*)payload_pointer - get_size(payload_pointer - 8));
+}
+
+/*
+* next_fblk: gets the address of the next free blocks payload pointer
+*/
+char *next_blk(void* payload_pointer){
+    return((char*)payload_pointer + get_size(payload_pointer - 4));
+}
+
+/*
+* coalesce: merges adjacent free blocks
+*/
+void* coalesce(void *payload_pointer){
+    size_t prev_block = get_alloc(GFA(prev_blk(payload_pointer)));
+    size_t next_block = get_alloc(GHA(next_blk(payload_pointer)));
+    size_t block_size = get_size(GHA(payload_pointer));
+
+    // prev and next, allocated
+    if(prev_block && next_block){
+        return(payload_pointer);
+    }
+    // prev allocated, next not allocated
+    else if(prev_block && !next_block){
+        block_size += get_size(GHA(next_blk(payload_pointer)));
+        put(GHA(payload_pointer), pack(block_size,0));
+        put(GFA(next_blk(payload_pointer)), pack(block_size, 0));
+    }
+
+    // prev not allocated, next allocated
+    else if(!prev_block && next_block){
+        block_size += get_size(GHA(prev_blk(payload_pointer)));
+        put(GHA(prev_blk(payload_pointer)), pack(block_size, 0));
+        put(GFA(payload_pointer), pack(block_size,0));
+        payload_pointer = prev_blk(payload_pointer);
+    }
+
+    // prev and next, not allocated
+    else{
+        block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));
+        put(GHA(prev_blk(payload_pointer)), pack(block_size,0));
+        put(GFA(next_blk(payload_pointer)), pack(block_size,0));
+        payload_pointer = prev_blk(payload_pointer);
+    }
+
+    return(payload_pointer);
+}
+
+

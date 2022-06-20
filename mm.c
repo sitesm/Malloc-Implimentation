@@ -54,7 +54,7 @@
 
 /* What is the correct alignment? 8 bytes for x86 16 bytes for x86-64 */
 // Make it 24 bytes so you can have a header, footer and 2 pointers
-#define ALIGNMENT 16
+#define ALIGNMENT 32
 
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
@@ -85,11 +85,11 @@ bool mm_init(void){
     put(mem_heap_lo(), 0);
 
     // Set prologue block
-    put((char*)mem_heap_lo + 4, pack(8, 1));
-    put((char*)mem_heap_lo + 8, pack(8, 1));
+    put((char*)mem_heap_lo + 8, pack(16, 1));
+    put((char*)mem_heap_lo + 16, pack(16, 1));
 
     // Set epilogue block 
-    put((char*)mem_heap_lo() + 12 , pack(0, 1));
+    put((char*)mem_heap_lo() + 24 , pack(0, 1));
 
     // Allocate the first free block
     if(!allocate_page()){
@@ -105,7 +105,7 @@ bool mm_init(void){
  */
 void* malloc(size_t size){
     // size + header + footer and allign (in bytes)
-    int block_size = align(size+8);
+    int block_size = align(size+16);
 
     // Error check; sbreak failing is checked lower
     if(size == 0){ // size is 0
@@ -155,7 +155,7 @@ void* malloc(size_t size){
     curr_pos = (char*)tmp_pos;
 
     // Repurpose tmp_pos for result
-    tmp_pos = (void*)(curr_pos - (block_size - 4));
+    tmp_pos = (void*)(curr_pos - (block_size - 8));
 
     // return payload location
     return (tmp_pos);
@@ -244,13 +244,13 @@ bool allocate_page(){
 
     // Set footer and header blocks
     put(block_pointer, pack(4096,0));
-    put((char*)block_pointer + 4096 - 8, pack(4096,0));
+    put((char*)block_pointer + 4096 - 16, pack(4096,0));
 
     // Set prev/next free block
     // memset((char*)block_pointer + 4, &free_root, 8);
 
     // Set new epilogue header
-    put((char*)block_pointer + 4096 - 4, pack(0,1));
+    put((char*)block_pointer + 4096 - 8, pack(0,1));
     
     // Update current position in heap 
     curr_pos = coalesce(block_pointer);
@@ -264,21 +264,22 @@ bool allocate_page(){
 * Pack: create a value for the header/footer
 */
 int pack(int size, int alloc){
-    // Bitwise or size and alloc then extend to 32 bits (4 bytes)
-    return (0x00000000 | (size | alloc));
+    // Bitwise or size and alloc then extend to 64 bits (8 bytes)
+    return (0x0000000000000000 | (size | alloc));
 }
 
 /*
 * GHA: returns the addressof the header via a payload pointer
 */
 char *GHA(void *payload_pointer){
-    return((char*)payload_pointer - 4);
+    return((char*)payload_pointer - 8);
 }
 
 /*
 * GFA: returns the address of the footer via a payload pointer
 */
 char *GFA(void *payload_pointer){
+    // might have to be -16 bytes, idk
     return((char*)payload_pointer + get_size(GHA(payload_pointer)) - 8);    
 }
 
@@ -287,7 +288,7 @@ char *GFA(void *payload_pointer){
 *   - Used in conjuction with get_size & get_alloc
 */
 unsigned int get(void *addr){
-    return(*(unsigned int *)addr);
+    return(*(unsigned long int *)addr);
 }
 
 /*
@@ -308,7 +309,7 @@ int get_alloc(void *addr){
 * put: puts a header/footer value at addr
 */ 
 void put(void* addr, int val){
-    *(unsigned int *)addr = val;
+    *(unsigned long int *)addr = val;
 }
 
 /*

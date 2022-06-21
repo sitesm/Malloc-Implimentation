@@ -53,7 +53,7 @@
 #endif /* DRIVER */
 
 /* What is the correct alignment? 8 bytes for x86 16 bytes for x86-64 */
-// Make it 24 bytes so you can have a header, footer and 2 pointers
+// Make it 32 bytes so you can have a header, footer, 2 pointers, and padding 
 #define ALIGNMENT 32
 
 
@@ -73,7 +73,7 @@ static size_t align(size_t x){
 bool mm_init(void){
 
     // Initial allocate of 4 words
-    void *mem_brk = mem_sbrk(16);
+    void *mem_brk = mem_sbrk(32);
 
     // Initial allocation failed
     if(mem_brk == NULL || *(int*)mem_brk == -1){
@@ -144,7 +144,7 @@ void* malloc(size_t size){
 
     // set the header and footer
     put(curr_pos, pack(block_size, 1));
-    put(curr_pos + block_size - 4, pack(block_size, 1));   
+    put((char*)tmp_pos - 8, pack(block_size, 1));   
 
     /*
     * set the newly allocated bits that arent
@@ -155,10 +155,10 @@ void* malloc(size_t size){
     curr_pos = (char*)tmp_pos;
 
     // Repurpose tmp_pos for result
-    tmp_pos = (void*)(curr_pos - (block_size - 8));
+    tmp_pos = (char*)(curr_pos - (block_size - 8));
 
     // return payload location
-    return (tmp_pos);
+    return ((void*)tmp_pos);
 }
 
 /*
@@ -263,22 +263,22 @@ bool allocate_page(){
 /*
 * Pack: create a value for the header/footer
 */
-int pack(int size, int alloc){
-    // Bitwise or size and alloc then extend to 64 bits (8 bytes)
-    return (0x0000000000000000 | (size | alloc));
+size_t pack(size_t size, int alloc){
+    // Bitwise or size and alloc into one 8 byte number
+    return (size | alloc);
 }
 
 /*
 * GHA: returns the addressof the header via a payload pointer
 */
-char *GHA(void *payload_pointer){
+void *GHA(void *payload_pointer){
     return((char*)payload_pointer - 8);
 }
 
 /*
 * GFA: returns the address of the footer via a payload pointer
 */
-char *GFA(void *payload_pointer){
+void *GFA(void *payload_pointer){
     // might have to be -16 bytes, idk
     return((char*)payload_pointer + get_size(GHA(payload_pointer)) - 8);    
 }
@@ -287,14 +287,14 @@ char *GFA(void *payload_pointer){
 * get: returns a word from addr as an int
 *   - Used in conjuction with get_size & get_alloc
 */
-unsigned int get(void *addr){
-    return(*(unsigned long int *)addr);
+size_t get(void *addr){
+    return(*(size_t *)addr);
 }
 
 /*
 * get_size: gets the size of a header/footer in bytes
 */
-unsigned int get_size(void *addr){
+size_t get_size(void *addr){
     return(get(addr) & ~0x15);
 }
 
@@ -308,8 +308,8 @@ int get_alloc(void *addr){
 /*
 * put: puts a header/footer value at addr
 */ 
-void put(void* addr, int val){
-    *(unsigned long int *)addr = val;
+void put(void* addr, size_t val){
+    *(size_t *)addr = val;
 }
 
 /*

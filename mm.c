@@ -82,7 +82,7 @@ bool mm_init(void){
     }
 
     // Set unused blocks
-    put(mem_heap_lo(), 0);
+    put(mem_brk, 0);
 
     // Set prologue block
     put(mem_brk + 8, pack(16, 1));

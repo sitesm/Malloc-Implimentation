@@ -73,7 +73,7 @@ static size_t align(size_t x){
 bool mm_init(void){
 
     // Initial allocate of 4 words
-    void *mem_brk = mem_sbrk(32);
+    char *mem_brk = mem_sbrk(32);
 
     // Initial allocation failed
     if(mem_brk == NULL || *(int*)mem_brk == -1){
@@ -85,11 +85,11 @@ bool mm_init(void){
     put(mem_heap_lo(), 0);
 
     // Set prologue block
-    put((char*)mem_heap_lo + 8, pack(16, 1));
-    put((char*)mem_heap_lo + 16, pack(16, 1));
+    put(mem_brk + 8, pack(16, 1));
+    put(mem_brk + 16, pack(16, 1));
 
     // Set epilogue block 
-    put((char*)mem_heap_lo() + 24 , pack(0, 1));
+    put(mem_brk + 24 , pack(8, 1));
 
     // Allocate the first free block
     if(!allocate_page()){

@@ -54,7 +54,7 @@
 
 /* What is the correct alignment? 8 bytes for x86 16 bytes for x86-64 */
 // Make it 32 bytes so you can have a header, footer, 2 pointers, and padding 
-#define ALIGNMENT 32
+#define ALIGNMENT 16
 
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
@@ -105,7 +105,8 @@ bool mm_init(void){
  */
 void* malloc(size_t size){
     // size + header + footer and allign (in bytes)
-    int block_size = align(size+16);
+    // 32 Bytes
+    int block_size = 2 * align(size+16);
 
     // Error check; sbreak failing is checked lower
     if(size == 0){ // size is 0

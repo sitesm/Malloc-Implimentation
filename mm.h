@@ -26,13 +26,13 @@ extern bool mm_checkheap(int lineno);
 
 // Helper Functions
 extern bool allocate_page(void);
-extern int pack(int size, int alloc);
-extern char *GHA(void *payload_pointer);
-extern char *GFA(void *payload_pointer);
-extern unsigned int get(void *addr);
-extern unsigned int get_size(void *addr);
+extern size_t pack(size_t size, int alloc);
+extern void *GHA(void *payload_pointer);
+extern void *GFA(void *payload_pointer);
+extern size_t get(void *addr);
+extern size_t get_size(void *addr);
 extern int get_alloc(void *addr);
-extern void put(void* adddr, int val);
+extern void put(void* adddr, size_t val);
 extern char *prev_blk(void* payload_pointer);
 extern char *next_blk(void* payload_pointer);
 extern void* coalesce(void *payload_pointer);

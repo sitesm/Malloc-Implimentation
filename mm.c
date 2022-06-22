@@ -106,7 +106,7 @@ bool mm_init(void){
 void* malloc(size_t size){
     // size + header + footer and allign (in bytes)
     // 32 Bytes
-    int block_size = 2 * align(size+16);
+    int block_size = align(size+16);
 
     // Error check; sbreak failing is checked lower
     if(size == 0){ // size is 0
@@ -159,7 +159,7 @@ void* malloc(size_t size){
     tmp_pos = (char*)(curr_pos - (block_size - 8));
 
     // return payload location
-    return ((void*)tmp_pos);
+    return (tmp_pos);
 }
 
 /*
@@ -254,7 +254,7 @@ bool allocate_page(){
     put((char*)block_pointer + 4096 - 8, pack(0,1));
     
     // Update current position in heap 
-    curr_pos = coalesce(block_pointer);
+    curr_pos = coalesce((char*)block_pointer + 16);
 
     printf("Page allocated: heap size %zu/%llu bytes", mem_heapsize(), MAX_HEAP_SIZE);
 

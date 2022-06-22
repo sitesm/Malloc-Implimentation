@@ -87,8 +87,8 @@ bool mm_init(void){
     put(mem_brk + 8, pack(16, 1));
     put(mem_brk + 16, pack(16, 1));
 
-    // Set epilogue block 
-    put(mem_brk + 24 , pack(8, 1));
+    // Set initial epilogue block 
+    put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
     if(!allocate_page()){
@@ -233,7 +233,7 @@ bool mm_checkheap(int lineno)
 */
 bool allocate_page(){
 
-    // Allocate a page (1 GiB)
+    // Allocate a page (4096 + 8 byte epilogue);
     void *block_pointer = mem_sbrk(4096);
 
     // Initial allocation failed
@@ -243,17 +243,17 @@ bool allocate_page(){
     }
 
     // Set footer and header blocks
-    put(block_pointer, pack(4096,0));
-    put((char*)block_pointer + 4096 - 16, pack(4096,0));
+    put(GHA(block_pointer), pack(4096,0));
+    put(GFA(block_pointer), pack(4096,0));
 
     // Set prev/next free block
     // memset((char*)block_pointer + 4, &free_root, 8);
 
     // Set new epilogue header
-    put((char*)block_pointer + 4096 - 8, pack(0,1));
+    put(GFA(next_blk(block_pointer)), pack(0,1));
     
     // Update current position in heap 
-    curr_pos = coalesce((char*)block_pointer + 16);
+    curr_pos = coalesce(block_pointer);
 
     printf("Page allocated: heap size %zu/%llu bytes", mem_heapsize(), MAX_HEAP_SIZE);
 
@@ -279,7 +279,6 @@ void *GHA(void *payload_pointer){
 * GFA: returns the address of the footer via a payload pointer
 */
 void *GFA(void *payload_pointer){
-    // might have to be -16 bytes, idk
     return((char*)payload_pointer + get_size(GHA(payload_pointer)) - 16);    
 }
 

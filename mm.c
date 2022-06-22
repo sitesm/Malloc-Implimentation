@@ -53,7 +53,6 @@
 #endif /* DRIVER */
 
 /* What is the correct alignment? 8 bytes for x86 16 bytes for x86-64 */
-// Make it 32 bytes so you can have a header, footer, 2 pointers, and padding 
 #define ALIGNMENT 16
 
 
@@ -72,7 +71,7 @@ static size_t align(size_t x){
  */
 bool mm_init(void){
 
-    // Initial allocate of 4 words
+    // Initial allocate of 8 words
     char *mem_brk = mem_sbrk(32);
 
     // Initial allocation failed
@@ -317,14 +316,14 @@ void put(void* addr, size_t val){
 * prev_fblk: gets the address of the previous free blocks payload pointer
 */
 char *prev_blk(void* payload_pointer){
-    return((char*)payload_pointer - get_size(payload_pointer - 8));
+    return((char*)payload_pointer - get_size((char*)payload_pointer - 8));
 }
 
 /*
 * next_fblk: gets the address of the next free blocks payload pointer
 */
 char *next_blk(void* payload_pointer){
-    return((char*)payload_pointer + get_size(payload_pointer - 8));
+    return((char*)payload_pointer + get_size((char*)payload_pointer - 8));
 }
 
 /*

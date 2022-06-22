@@ -324,7 +324,7 @@ char *prev_blk(void* payload_pointer){
 * next_fblk: gets the address of the next free blocks payload pointer
 */
 char *next_blk(void* payload_pointer){
-    return((char*)payload_pointer + get_size(payload_pointer - 4));
+    return((char*)payload_pointer + get_size(payload_pointer - 8));
 }
 
 /*

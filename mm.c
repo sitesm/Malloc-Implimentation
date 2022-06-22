@@ -280,7 +280,7 @@ void *GHA(void *payload_pointer){
 */
 void *GFA(void *payload_pointer){
     // might have to be -16 bytes, idk
-    return((char*)payload_pointer + get_size(GHA(payload_pointer)) - 8);    
+    return((char*)payload_pointer + get_size(GHA(payload_pointer)) - 16);    
 }
 
 /*

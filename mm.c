@@ -316,7 +316,7 @@ void put(void* addr, size_t val){
 * prev_fblk: gets the address of the previous free blocks payload pointer
 */
 char *prev_blk(void* payload_pointer){
-    return((char*)payload_pointer - get_size((char*)payload_pointer - 8));
+    return((char*)payload_pointer - get_size((char*)payload_pointer - 16));
 }
 
 /*

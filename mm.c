@@ -76,7 +76,7 @@ bool mm_init(void){
 
     // Initial allocation failed
     if(mem_brk == NULL || *(int*)mem_brk == -1){
-        printf("Initial 16 byte allocation failed");
+        printf("Initial 16 byte allocation failed\n");
         return false;
     }
 
@@ -92,7 +92,7 @@ bool mm_init(void){
 
     // Allocate the first free block
     if(!allocate_page()){
-        printf("Initial page allocation failed");
+        printf("Initial page allocation failed\n");
         return false;
     }
 
@@ -238,7 +238,7 @@ bool allocate_page(){
 
     // Initial allocation failed
     if(block_pointer == NULL || *(int*)block_pointer == -1){
-        printf("Page allocation failed: heap size %zu/%llu bytes", mem_heapsize() + 4096, MAX_HEAP_SIZE);
+        printf("Page allocation failed: heap size %zu/%llu bytes\n", mem_heapsize() + 4096, MAX_HEAP_SIZE);
         return false;
     }
 
@@ -250,12 +250,12 @@ bool allocate_page(){
     // memset((char*)block_pointer + 4, &free_root, 8);
 
     // Set new epilogue header
-    put(GFA(next_blk(block_pointer)), pack(0,1));
+    put(GHA(next_blk(block_pointer)), pack(0,1));
     
     // Update current position in heap 
     curr_pos = coalesce(block_pointer);
 
-    printf("Page allocated: heap size %zu/%llu bytes", mem_heapsize(), MAX_HEAP_SIZE);
+    printf("Page allocated: heap size %zu/%llu bytes\n", mem_heapsize(), MAX_HEAP_SIZE);
 
     return true;
 }
@@ -283,7 +283,7 @@ void *GFA(void *payload_pointer){
 }
 
 /*
-* get: returns a word from addr as an int
+* get: returns a word from addr as a size_t
 *   - Used in conjuction with get_size & get_alloc
 */
 size_t get(void *addr){

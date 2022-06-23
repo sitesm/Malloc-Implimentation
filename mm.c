@@ -233,7 +233,7 @@ bool mm_checkheap(int lineno)
 */
 bool allocate_page(){
 
-    // Allocate a page (4096);
+    // Allocate a page (4096 bytes);
     void *block_pointer = mem_sbrk(4096);
     char *payload_pointer = (char*)block_pointer + 8;
 
@@ -244,7 +244,7 @@ bool allocate_page(){
     }
 
     // Set footer and header blocks
-    put(GHA(payload_pointer), pack(4096,0)); // Overwrites old epilogue headeer
+    put(GHA(block_pointer), pack(4096,0)); // Overwrites old epilogue header
     put(GFA(payload_pointer), pack(4096,0));
 
     // Set prev/next free block

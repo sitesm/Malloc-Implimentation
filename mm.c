@@ -83,7 +83,7 @@ bool mm_init(void){
     // Set unused blocks
     put(mem_brk, 0);
 
-    // Set prologue block
+    // Set prologue block (not getting set??)
     put(mem_brk + 8, pack(16, 1));
     put(mem_brk + 16, pack(16, 1));
 
@@ -109,7 +109,7 @@ void* malloc(size_t size){
 
     // Error check; sbreak failing is checked lower
     if(size == 0){ // size is 0
-        printf("Malloc Returning NULL: size == 0");
+        printf("Malloc Returning NULL: size == 0\n");
         return NULL;
     }
 
@@ -294,7 +294,7 @@ size_t get(void *addr){
 * get_size: gets the size of a header/footer in bytes
 */
 size_t get_size(void *addr){
-    return(get(addr) & ~0x15);
+    return(get(addr) & ~0xF);
 }
 
 /*

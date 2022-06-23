@@ -84,7 +84,7 @@ bool mm_init(void){
     // Set unused blocks
     put(mem_brk, 0);
 
-    // Set prologue block (not getting set??)
+    // Set prologue block 
     put(mem_brk + 8, pack(16, 1));
     put(mem_brk + 16, pack(16, 1));
 
@@ -132,10 +132,10 @@ void* malloc(size_t size){
     * Allocate pages if needed;
     * cast TOH to char to work in bytes
     */
-    void *tmp_pos = TOH + block_size;
+    void *tmp_pos = TOH + block_size; // tmp_pos = next payload pointer
 
-    // allocate page if tmp_pos exceeds the current heap size
-    while(tmp_pos > mem_heap_hi()){
+    // allocate page if tmp_pos exceeds the current heap size (minus the epilogiue)
+    while(tmp_pos > (char*)mem_heap_hi() - 8){
         if(!allocate_page()){
             printf("Page allocation failed during malloc");
             return NULL;
@@ -143,8 +143,9 @@ void* malloc(size_t size){
     }
 
     // set the header and footer
-    put(TOH, pack(block_size, 1));
-    put((char*)tmp_pos - 8, pack(block_size, 1));   
+    put(GHA(TOH), pack(block_size, 1));
+    // put((char*)tmp_pos - 8, pack(block_size, 1)); 
+    put(GFA(TOH), pack(block_size,1));  
 
     /*
     * set the newly allocated bits that arent
@@ -154,8 +155,8 @@ void* malloc(size_t size){
     // update 
     TOH = (char*)tmp_pos;
 
-    // return payload location ---- Do we need the +8?
-    return (TOH);
+    // return payload location 
+    return (TOH - block_size);
 }
 
 /*
@@ -226,7 +227,7 @@ bool mm_checkheap(int lineno)
 }
 
 /*
-* Allocates a page 
+* Allocates a page and coalesces to set TOH to the first unused payload pointer of allocated memory
 */
 bool allocate_page(){
 
@@ -252,7 +253,7 @@ bool allocate_page(){
     // Update TOH 
     TOH = coalesce(block_pointer);
 
-    printf("Page allocated: heap size %zu/%llu bytes\n", mem_heapsize(), MAX_HEAP_SIZE);
+    // dbg_printf("Page allocated: heap size %zu/%llu bytes\n", mem_heapsize(), MAX_HEAP_SIZE);
 
     return true;
 }
@@ -291,7 +292,7 @@ size_t get(void *addr){
 * get_size: gets the size of a header/footer in bytes
 */
 size_t get_size(void *addr){
-    return(get(addr) & ~0xF);
+    return(get(addr) & ~0xF); 
 }
 
 /*
@@ -323,7 +324,7 @@ char *next_blk(void* payload_pointer){
 }
 
 /*
-* coalesce: merges adjacent free blocks
+* coalesce: merges adjacent free blocks, returns the payload pointer
 */
 void* coalesce(void *payload_pointer){
     size_t prev_block = get_alloc(GFA(prev_blk(payload_pointer)));

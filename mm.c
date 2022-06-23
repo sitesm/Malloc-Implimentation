@@ -161,7 +161,7 @@ void* malloc(size_t size){
    * Only update TOH_bytes_lefts if the block is placed at the end of the heap
    */
     TOH_bytes_left += block_size;
-    put(GFA(TOH) + 8, pack(mem_heapsize() - TOH_bytes_left, 0);
+    put(GFA(TOH) + 8, pack(mem_heapsize() - TOH_bytes_left, 0));
     put((char*)mem_heap_hi() - 8, pack(mem_heapsize() - TOH_bytes_left, 0));
 
     // update 

@@ -154,7 +154,7 @@ void* malloc(size_t size){
     TOH = (char*)tmp_pos;
 
     // return payload location ---- Do we need the +8?
-    return (TOH + 8);
+    return (TOH);
 }
 
 /*

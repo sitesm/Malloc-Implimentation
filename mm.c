@@ -176,11 +176,18 @@ void* malloc(size_t size){
  */
 void free(void* payload_pointer)
 {   
+    bool isNULL = payload_pointer == NULL;
+    bool wasAlloc = get_alloc(GHA(payload_pointer));
+    
+    // If PP != NULL, free
+    if(!isNULL && wasAlloc){
     size_t size = get_size(GHA(payload_pointer));
 
     put(GHA(payload_pointer), pack(size, 0));
     put(GFA(payload_pointer), pack(size, 0));
     coalesce(payload_pointer); // Add this to free list when you get there
+    }
+    
 }
 
 /*

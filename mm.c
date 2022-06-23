@@ -57,6 +57,7 @@
 
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
+// Adding a comment to trigger a git update?
 // static char *free_root = NULL; // The root of the the free list
 static char *TOH = NULL; // first byte of the unallocated heap area
 

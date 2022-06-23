@@ -150,13 +150,10 @@ void* malloc(size_t size){
     * used in the malloc to the free list
     */
 
-    // update & save 
+    // update 
     TOH = (char*)tmp_pos;
 
-    // Repurpose tmp_pos for result
-    tmp_pos = (char*)(TOH - (block_size - 8));
-
-    // return payload location
+    // return payload location ---- Do we need the +8?
     return (TOH + 8);
 }
 
@@ -233,7 +230,7 @@ bool mm_checkheap(int lineno)
 bool allocate_page(){
 
     // Allocate a page (4096 bytes);
-    void *block_pointer = mem_sbrk(4088);
+    void *block_pointer = mem_sbrk(4096);
 
     // Initial allocation failed
     if(block_pointer == NULL || *(int*)block_pointer == -1){

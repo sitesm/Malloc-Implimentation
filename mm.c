@@ -52,13 +52,13 @@
 #define memcpy mem_memcpy
 #endif /* DRIVER */
 
-/* What is the correct alignment? 8 bytes for x86 16 bytes for x86-64 */
+/* What is the correct alignment?*/
 #define ALIGNMENT 16
 
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
 // static char *free_root = NULL; // The root of the the free list
-static char *curr_pos = NULL;
+static char *TOH = NULL; // first byte of the unallocated heap area
 
 
 /* rounds up to the nearest multiple of ALIGNMENT */
@@ -104,7 +104,6 @@ bool mm_init(void){
  */
 void* malloc(size_t size){
     // size + header + footer and allign (in bytes)
-    // 32 Bytes
     int block_size = align(size+16);
 
     // Error check; sbreak failing is checked lower
@@ -128,11 +127,11 @@ void* malloc(size_t size){
     /////////////////////////////
 
     /* 
-    * Increment curr_pos by block_size bytes;
+    * Increment TOH by block_size bytes;
     * Allocate pages if needed;
-    * cast curr_pos to char to work in bytes
+    * cast TOH to char to work in bytes
     */
-    void *tmp_pos = curr_pos + block_size;
+    void *tmp_pos = TOH + block_size;
 
     // allocate page if tmp_pos exceeds the current heap size
     while(tmp_pos > mem_heap_hi()){
@@ -143,7 +142,7 @@ void* malloc(size_t size){
     }
 
     // set the header and footer
-    put(curr_pos, pack(block_size, 1));
+    put(TOH, pack(block_size, 1));
     put((char*)tmp_pos - 8, pack(block_size, 1));   
 
     /*
@@ -152,13 +151,13 @@ void* malloc(size_t size){
     */
 
     // update & save 
-    curr_pos = (char*)tmp_pos;
+    TOH = (char*)tmp_pos;
 
     // Repurpose tmp_pos for result
-    tmp_pos = (char*)(curr_pos - (block_size - 8));
+    tmp_pos = (char*)(TOH - (block_size - 8));
 
     // return payload location
-    return (tmp_pos);
+    return (TOH + 8);
 }
 
 /*
@@ -234,7 +233,7 @@ bool mm_checkheap(int lineno)
 bool allocate_page(){
 
     // Allocate a page (4096 bytes);
-    void *block_pointer = mem_sbrk(4096);
+    void *block_pointer = mem_sbrk(4088);
 
     // Initial allocation failed
     if(block_pointer == NULL || *(int*)block_pointer == -1){
@@ -252,8 +251,8 @@ bool allocate_page(){
     // Set new epilogue header
     put(GHA(next_blk(block_pointer)), pack(0,1));
     
-    // Update curr_pos 
-    curr_pos = coalesce(block_pointer);
+    // Update TOH 
+    TOH = coalesce(block_pointer);
 
     printf("Page allocated: heap size %zu/%llu bytes\n", mem_heapsize(), MAX_HEAP_SIZE);
 

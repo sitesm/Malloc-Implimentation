@@ -233,7 +233,7 @@ bool mm_checkheap(int lineno)
 */
 bool allocate_page(){
 
-    // Allocate a page (4096 + 8 byte epilogue);
+    // Allocate a page (4096);
     void *block_pointer = mem_sbrk(4096);
 
     // Initial allocation failed
@@ -243,7 +243,7 @@ bool allocate_page(){
     }
 
     // Set footer and header blocks
-    put(GHA(block_pointer), pack(4096,0));
+    put(GHA(block_pointer), pack(4096,0)); // Overwrites old epilogue headeer
     put(GFA(block_pointer), pack(4096,0));
 
     // Set prev/next free block
@@ -252,8 +252,8 @@ bool allocate_page(){
     // Set new epilogue header
     put(GHA(next_blk(block_pointer)), pack(0,1));
     
-    // Update current position in heap 
-    curr_pos = coalesce(block_pointer);
+    // Update current top of the allocated heap 
+    curr_pos = coalesce((char*)block_pointer + 8);
 
     printf("Page allocated: heap size %zu/%llu bytes\n", mem_heapsize(), MAX_HEAP_SIZE);
 

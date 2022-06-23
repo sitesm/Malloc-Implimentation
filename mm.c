@@ -57,9 +57,11 @@
 
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
-// Adding a comment to trigger a git update?
+
+size_t TOH_bytes_left = 0; // What byte the top of the unallocated heap is
+
 // static char *free_root = NULL; // The root of the the free list
-static char *TOH = NULL; // first byte of the unallocated heap area
+static char *TOH = NULL; // next free payload pointer of the unallocated heap area
 
 
 /* rounds up to the nearest multiple of ALIGNMENT */
@@ -90,6 +92,9 @@ bool mm_init(void){
 
     // Set initial epilogue block 
     put(mem_brk + 24 , pack(0, 1));
+
+    // Update TOH_bytes_left 
+    TOH_bytes_left += 32;
 
     // Allocate the first free block
     if(!allocate_page()){
@@ -132,25 +137,32 @@ void* malloc(size_t size){
     * Allocate pages if needed;
     * cast TOH to char to work in bytes
     */
-    void *tmp_pos = TOH + block_size; // tmp_pos = next payload pointer
+    void *tmp_pos = TOH + block_size; // tmp_pos = how far the block will extend (before allocation) also next PP
 
-    // allocate page if tmp_pos exceeds the current heap size (minus the epilogiue)
-    while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+    // allocate page if tmp_pos exceeds the current heap size (ADD = minus the epilogiue)
+    while(tmp_pos >= mem_heap_hi()){
         if(!allocate_page()){
             printf("Page allocation failed during malloc");
             return NULL;
         }
     }
 
-    // set the header and footer
+    // set the header and footer of the allocated block
     put(GHA(TOH), pack(block_size, 1));
-    // put((char*)tmp_pos - 8, pack(block_size, 1)); 
-    put(GFA(TOH), pack(block_size,1));  
+    put(GFA(TOH), pack(block_size, 1)); 
 
     /*
     * set the newly allocated bits that arent
     * used in the malloc to the free list
     */
+
+   /*
+   * Set header and footer for un-used bytes after updating what byte TOH is at
+   * Only update TOH_bytes_lefts if the block is placed at the end of the heap
+   */
+    TOH_bytes_left += block_size;
+    put(GFA(TOH) + 8, pack(mem_heapsize() - TOH_bytes_left, 0);
+    put((char*)mem_heap_hi() - 8, pack(mem_heapsize() - TOH_bytes_left, 0));
 
     // update 
     TOH = (char*)tmp_pos;
@@ -168,7 +180,7 @@ void free(void* payload_pointer)
 
     put(GHA(payload_pointer), pack(size, 0));
     put(GFA(payload_pointer), pack(size, 0));
-    coalesce(payload_pointer);
+    coalesce(payload_pointer); // Add this to free list when you get there
 }
 
 /*
@@ -232,26 +244,26 @@ bool mm_checkheap(int lineno)
 bool allocate_page(){
 
     // Allocate a page (4096 bytes);
-    void *block_pointer = mem_sbrk(4096);
+    void *payload_pointer = mem_sbrk(4096); // mem-brk returns a PP in this implimentation
 
     // Initial allocation failed
-    if(block_pointer == NULL || *(int*)block_pointer == -1){
+    if(payload_pointer == NULL || *(int*)payload_pointer == -1){
         printf("Page allocation failed: heap size %zu/%llu bytes\n", mem_heapsize() + 4096, MAX_HEAP_SIZE);
         return false;
     }
 
-    // Set footer and header blocks
-    put(GHA(block_pointer), pack(4096,0)); // Overwrites old epilogue header
-    put(GFA(block_pointer), pack(4096,0));
+    // Set footer and header blocks for allocated block
+    put(GHA(payload_pointer), pack(4096,0)); // Overwrites old epilogue header
+    put(GFA(payload_pointer), pack(4096,0));
 
     // Set prev/next free block
     // memset((char*)block_pointer + 4, &free_root, 8);
 
     // Set new epilogue header
-    put(GHA(next_blk(block_pointer)), pack(0,1));
+    put(GHA(next_blk(payload_pointer)), pack(0,1));
     
     // Update TOH 
-    TOH = coalesce(block_pointer);
+    TOH = coalesce(payload_pointer);
 
     // dbg_printf("Page allocated: heap size %zu/%llu bytes\n", mem_heapsize(), MAX_HEAP_SIZE);
 

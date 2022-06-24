@@ -36,3 +36,4 @@ extern void put(void* adddr, size_t val);
 extern char *prev_blk(void* payload_pointer);
 extern char *next_blk(void* payload_pointer);
 extern void* coalesce(void *payload_pointer);
+extern size_t place(void* payload_pointer, size_t block_size);

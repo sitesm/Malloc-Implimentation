@@ -358,14 +358,14 @@ void* coalesce(void *payload_pointer){
     else if(prev_block && !next_block){
         block_size += get_size(GHA(next_blk(payload_pointer)));
         put(GHA(payload_pointer), pack(block_size,0));
-        put(GFA(next_blk(payload_pointer)), pack(block_size, 0));
+        put(GFA(payload_pointer), pack(block_size, 0));
     }
 
     // prev not allocated, next allocated
     else if(!prev_block && next_block){
         block_size += get_size(GHA(prev_blk(payload_pointer)));
-        put(GHA(prev_blk(payload_pointer)), pack(block_size, 0));
         put(GFA(payload_pointer), pack(block_size,0));
+        put(GHA(prev_blk(payload_pointer)), pack(block_size, 0));
         payload_pointer = prev_blk(payload_pointer);
     }
 

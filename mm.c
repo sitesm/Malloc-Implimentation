@@ -55,14 +55,10 @@
 /* What is the correct alignment?*/
 #define ALIGNMENT 16
 
-
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
-
 size_t TOH_bytes_left = 0; // What byte the top of the unallocated heap is
-
 // static char *free_root = NULL; // The root of the the free list
 static char *TOH = NULL; // next free payload pointer of the unallocated heap area
-
 
 /* rounds up to the nearest multiple of ALIGNMENT */
 static size_t align(size_t x){
@@ -111,7 +107,7 @@ bool mm_init(void){
 void* malloc(size_t size){
 
     // size + header + footer alligned (in bytes)
-    int block_size = align(size+16);
+    size_t block_size = align(size+16);
 
     // size = 0 error
     if(size == 0){ 
@@ -159,7 +155,7 @@ void* malloc(size_t size){
     // put((char*)mem_heap_hi() - 15, pack(mem_heapsize() - TOH_bytes_left, 0));
 
     // update 
-    TOH = (allocated_size == block_size) ? (char*)tmp_pos : (char*)tmp_pos - block_size + allocated_size);
+    TOH = (allocated_size == block_size) ? (char*)tmp_pos : (char*)tmp_pos - block_size + allocated_size;
 
     // return payload location 
     return (TOH - allocated_size);

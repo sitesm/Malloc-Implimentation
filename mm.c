@@ -139,7 +139,7 @@ void* malloc(size_t size){
     }
 
     // place the block at the top of the heap
-    size_t allocated_size = place(TOH, block_size);
+    size_t allocated_size = place((void*)TOH, block_size);
 
     // // set the header and footer of the allocated block
     // put(GHA(TOH), pack(block_size, 1));
@@ -371,27 +371,27 @@ void* coalesce(void *payload_pointer){
 /*
 * place: places a block of block_size at payload_pointer most effectivley
 */
-size_t place(void* paylaod_pointer, size_t block_size){
+size_t place(void* payload_pointer, size_t block_size){
 
     // Save old information
     size_t old_size = get_size(GHA(payload_pointer));
-    // void* next_blk_header = GHA(next_blk(paylaod_pointer));
+    // void* next_blk_header = GHA(next_blk(payload_pointer));
     size_t remainder = old_size - block_size;
 
     // If the remaining block is going to be smaller than the minimum block size
     if(remainder < 32){
         // set the header and footer of the whole allocated block
-        put(GHA(paylaod_pointer), pack(old_size, 1));
-        put(GFA(paylaod_pointer), pack(old_size, 1)); 
+        put(GHA(payload_pointer), pack(old_size, 1));
+        put(GFA(payload_pointer), pack(old_size, 1)); 
 
         return old_size;
     }else{ // Only split if remainder >= 32
         // set the header and footer of the just the allocated block
-        put(GHA(paylaod_pointer), pack(block_size, 1));
-        put(GFA(paylaod_pointer), pack(block_size, 1)); 
+        put(GHA(payload_pointer), pack(block_size, 1));
+        put(GFA(payload_pointer), pack(block_size, 1)); 
 
-        put(GHA(next_blk(paylaod_pointer)), pack(remainder, 0)); 
-        put(GFA(next_blk(paylaod_pointer)), pack(remainder, 0));    
+        put(GHA(next_blk(payload_pointer)), pack(remainder, 0)); 
+        put(GFA(next_blk(payload_pointer)), pack(remainder, 0));    
 
         // // Set header and footer for un-used bytes 
         // put((char*)GFA(paylaod_pointer) + 8, pack(remainder, 0)); 

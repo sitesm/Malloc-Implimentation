@@ -109,11 +109,12 @@ bool mm_init(void){
  * malloc
  */
 void* malloc(size_t size){
-    // size + header + footer and allign (in bytes)
+
+    // size + header + footer alligned (in bytes)
     int block_size = align(size+16);
 
-    // Error check; sbreak failing is checked lower
-    if(size == 0){ // size is 0
+    // size = 0 error
+    if(size == 0){ 
         printf("Malloc Returning NULL: size == 0\n");
         return NULL;
     }
@@ -122,24 +123,18 @@ void* malloc(size_t size){
 
     /* 
     * If you find a block, put it there and add 
-    * the remaining bits to the free list.
+    * the remaining bytes to the free list.
     */
 
-    /////////////////////////////
-    // When there is no blocks 
-    // in the free list suitable
-    // to fit the block size,
-    // add it to the top of heap
-    /////////////////////////////
+    /***************************************************
+    * When there is no blocks in the free list suitable
+    * to fit the block size, add it to the top of heap
+    ****************************************************/
 
-    /* 
-    * Increment TOH by block_size bytes;
-    * Allocate pages if needed;
-    * cast TOH to char to work in bytes
-    */
-    void *tmp_pos = TOH + block_size; // tmp_pos = how far the block will extend (before allocation) also next PP
+    // tmp_pos = how far the block will extend; also next PP
+    void *tmp_pos = TOH + block_size; 
 
-    // allocate page if tmp_pos exceeds the current heap size (ADD = minus the epilogiue)
+    // allocate page if tmp_pos exceeds the current heap size 
     while(tmp_pos >= mem_heap_hi()){
         if(!allocate_page()){
             printf("Page allocation failed during malloc");
@@ -147,28 +142,27 @@ void* malloc(size_t size){
         }
     }
 
-    // set the header and footer of the allocated block
-    put(GHA(TOH), pack(block_size, 1));
-    put(GFA(TOH), pack(block_size, 1)); 
+    // place the block at the top of the heap
+    size_t allocated_size = place(TOH, block_size);
 
-    /*
-    * set the newly allocated bits that arent
-    * used in the malloc to the free list
-    */
-
-   /*
-   * Set header and footer for un-used bytes after updating what byte TOH is at
-   * Only update TOH_bytes_lefts if the block is placed at the end of the heap
-   */
-    TOH_bytes_left += block_size;
-    put(GFA(TOH) + 8, pack(mem_heapsize() - TOH_bytes_left, 0));
-    put((char*)mem_heap_hi() - 15, pack(mem_heapsize() - TOH_bytes_left, 0)); // -15 because off by 1 error?
+    // // set the header and footer of the allocated block
+    // put(GHA(TOH), pack(block_size, 1));
+    // put(GFA(TOH), pack(block_size, 1)); 
+    //
+    // /**************************************************************************
+    // * Set header and footer for un-used bytes after updating what byte TOH is at
+    // * Only update TOH_bytes_lefts if the block is placed at the end of the heap
+    // ***************************************************************************/
+    //
+    // TOH_bytes_left += block_size;
+    // put((char*)GFA(TOH) + 8, pack(mem_heapsize() - TOH_bytes_left, 0));
+    // put((char*)mem_heap_hi() - 15, pack(mem_heapsize() - TOH_bytes_left, 0));
 
     // update 
-    TOH = (char*)tmp_pos;
+    TOH = (allocated_size == block_size) ? (char*)tmp_pos : (char*)tmp_pos - block_size + allocated_size);
 
     // return payload location 
-    return (TOH - block_size);
+    return (TOH - allocated_size);
 }
 
 /*
@@ -179,7 +173,7 @@ void free(void* payload_pointer)
     bool isNULL = payload_pointer == NULL;
     bool wasAlloc = get_alloc(GHA(payload_pointer));
     
-    // If PP != NULL, free
+    // If PP != NULL && PP was allocated, free
     if(!isNULL && wasAlloc){
     size_t size = get_size(GHA(payload_pointer));
 
@@ -271,8 +265,6 @@ bool allocate_page(){
     
     // Update TOH 
     TOH = coalesce(payload_pointer);
-
-    // dbg_printf("Page allocated: heap size %zu/%llu bytes\n", mem_heapsize(), MAX_HEAP_SIZE);
 
     return true;
 }
@@ -380,4 +372,37 @@ void* coalesce(void *payload_pointer){
     return(payload_pointer);
 }
 
+/*
+* place: places a block of block_size at payload_pointer most effectivley
+*/
+size_t place(void* paylaod_pointer, size_t block_size){
 
+    // Save old information
+    size_t old_size = get_size(GHA(payload_pointer));
+    // void* next_blk_header = GHA(next_blk(paylaod_pointer));
+    size_t remainder = old_size - block_size;
+
+    // If the remaining block is going to be smaller than the minimum block size
+    if(remainder < 32){
+        // set the header and footer of the whole allocated block
+        put(GHA(paylaod_pointer), pack(old_size, 1));
+        put(GFA(paylaod_pointer), pack(old_size, 1)); 
+
+        return old_size;
+    }else{ // Only split if remainder >= 32
+        // set the header and footer of the just the allocated block
+        put(GHA(paylaod_pointer), pack(block_size, 1));
+        put(GFA(paylaod_pointer), pack(block_size, 1)); 
+
+        put(GHA(next_blk(paylaod_pointer)), pack(remainder, 0)); 
+        put(GFA(next_blk(paylaod_pointer)), pack(remainder, 0));    
+
+        // // Set header and footer for un-used bytes 
+        // put((char*)GFA(paylaod_pointer) + 8, pack(remainder, 0)); 
+        // put((char*)next_blk_header() - 8, pack(remainder, 0));    
+
+        // Add unused blocks ^^^  to the "remainder sized" free list
+
+        return block_size;
+    }
+} 

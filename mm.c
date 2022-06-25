@@ -127,6 +127,10 @@ void* malloc(size_t size){
     * to fit the block size, add it to the top of heap
     ****************************************************/
 
+    // if placing at TOH, make sure TOH is as far back as possible
+    // NOTE: Might be expensive
+    TOH = coalesce(TOH);
+
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
 
@@ -140,19 +144,6 @@ void* malloc(size_t size){
 
     // place the block at the top of the heap
     size_t allocated_size = place((void*)TOH, block_size);
-
-    // // set the header and footer of the allocated block
-    // put(GHA(TOH), pack(block_size, 1));
-    // put(GFA(TOH), pack(block_size, 1)); 
-    //
-    // /**************************************************************************
-    // * Set header and footer for un-used bytes after updating what byte TOH is at
-    // * Only update TOH_bytes_lefts if the block is placed at the end of the heap
-    // ***************************************************************************/
-    //
-    // TOH_bytes_left += block_size;
-    // put((char*)GFA(TOH) + 8, pack(mem_heapsize() - TOH_bytes_left, 0));
-    // put((char*)mem_heap_hi() - 15, pack(mem_heapsize() - TOH_bytes_left, 0));
 
     // update 
     TOH = (allocated_size == block_size) ? (char*)tmp_pos : (char*)tmp_pos - block_size + allocated_size;
@@ -171,13 +162,12 @@ void free(void* payload_pointer)
     
     // If PP != NULL && PP was allocated, free
     if(!isNULL && wasAlloc){
-    size_t size = get_size(GHA(payload_pointer));
+        size_t size = get_size(GHA(payload_pointer));
 
-    put(GHA(payload_pointer), pack(size, 0));
-    put(GFA(payload_pointer), pack(size, 0));
-    coalesce(payload_pointer); // Add this to free list when you get there
-    }
-    
+        put(GHA(payload_pointer), pack(size, 0));
+        put(GFA(payload_pointer), pack(size, 0));
+        coalesce(payload_pointer); // Add this to free list when you get there
+    } 
 }
 
 /*
@@ -375,7 +365,6 @@ size_t place(void* payload_pointer, size_t block_size){
 
     // Save old information
     size_t old_size = get_size(GHA(payload_pointer));
-    // void* next_blk_header = GHA(next_blk(payload_pointer));
     size_t remainder = old_size - block_size;
 
     // If the remaining block is going to be smaller than the minimum block size
@@ -390,12 +379,9 @@ size_t place(void* payload_pointer, size_t block_size){
         put(GHA(payload_pointer), pack(block_size, 1));
         put(GFA(payload_pointer), pack(block_size, 1)); 
 
-        put(GHA(next_blk(payload_pointer)), pack(remainder, 0)); 
-        put(GFA(next_blk(payload_pointer)), pack(remainder, 0));    
-
         // // Set header and footer for un-used bytes 
-        // put((char*)GFA(paylaod_pointer) + 8, pack(remainder, 0)); 
-        // put((char*)next_blk_header() - 8, pack(remainder, 0));    
+        put(GHA(next_blk(payload_pointer)), pack(remainder, 0)); 
+        put(GFA(next_blk(payload_pointer)), pack(remainder, 0));     
 
         // Add unused blocks ^^^  to the "remainder sized" free list
 

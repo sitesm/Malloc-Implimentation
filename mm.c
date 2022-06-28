@@ -88,9 +88,6 @@ bool mm_init(void){
     // Set initial epilogue block 
     put(mem_brk + 24 , pack(0, 1));
 
-    // Update TOH_bytes_left 
-    TOH_bytes_left += 32;
-
     // Allocate the first free block
     if(!allocate_page()){
         printf("Initial page allocation failed\n");

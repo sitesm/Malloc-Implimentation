@@ -56,7 +56,6 @@
 #define ALIGNMENT 16
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
-size_t TOH_bytes_left = 0; // What byte the top of the unallocated heap is
 // static char *free_root = NULL; // The root of the the free list
 static char *TOH = NULL; // next free payload pointer of the unallocated heap area
 
@@ -128,8 +127,9 @@ void* malloc(size_t size){
     ****************************************************/
 
     // if placing at TOH, make sure TOH is as far back as possible
-    // NOTE: Might be expensive
-    TOH = coalesce(TOH);
+    // NOTE: Might be time expensive to do this every malloc
+    // NO LONGER NEEDED?: solved in mm_free
+    // TOH = coalesce(TOH);
 
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
@@ -166,7 +166,13 @@ void free(void* payload_pointer)
 
         put(GHA(payload_pointer), pack(size, 0));
         put(GFA(payload_pointer), pack(size, 0));
-        coalesce(payload_pointer); // Add this to free list when you get there
+
+        // Edge case: the block you are trying to free was just allocated at TOH
+        if((char*)payload_pointer + size == TOH){
+            TOH = coalesce(payload_pointer);
+        }else{
+            coalesce(payload_pointer); // Add this to free list when you get there
+        }
     } 
 }
 

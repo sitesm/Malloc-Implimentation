@@ -481,8 +481,8 @@ size_t place(void* payload_pointer, size_t block_size){
         old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
 
         // Jump over fully allocated free block
-        put(old_payload_pred + 8, PtI(old_paylaod_succ); // pred
-        put(old_payload_succ, PtI(old_paylaod_pred); // succ
+        put(old_payload_pred + 8, PtI(old_payload_succ)); // pred
+        put(old_payload_succ, PtI(old_payload_pred); // succ
 
         return old_size;
     }else{ // Only split if remainder >= 32

@@ -428,17 +428,19 @@ void* coalesce(void *payload_pointer){
     }
 
     // prev and next, not allocated
-    else{
-        // Save successor before modifying payload pointer
-        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
+    else{      
+        // Save old pred/succ of prev_block
+        void* old_payload_pred_next = ItP(*(size_t*)next_blk(payload_pointer)); // pred
+        void* old_payload_succ_next = ItP(*(size_t*)(next_blk(payload_pointer) + 8)); // succ
 
         block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));
         put(GHA(prev_blk(payload_pointer)), pack(block_size,0));
         put(GFA(next_blk(payload_pointer)), pack(block_size,0));
         payload_pointer = prev_blk(payload_pointer);
 
-        // Save payload pointers old predeseccor
+        // Save old pred/succ of prev_block
         old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
+        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
         
         // Update curreent blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
@@ -447,11 +449,19 @@ void* coalesce(void *payload_pointer){
         // Set tmp_free_root's predesecor to payload pointer
         if(payload_pointer != free_root) {put(free_root, PtI(payload_pointer));} // pred
 
-        // Set old_payload_pred's successor to old_payload_succ
-        if(old_payload_pred != NULL) {put((char*)old_payload_pred + 8, PtI(old_payload_succ));} 
+        // Set tmp_free_root's predesecor/successor to payload pointer
+        if(payload_pointer != free_root) {put(free_root + 8, PtI(old_payload_succ_next));} // pred
+        if(payload_pointer != free_root) {put(old_payload_succ_next, PtI(free_root));} // pred
 
-        // Set old_payload_succ's predesecor to old_payload_succ
-        if(old_payload_succ != NULL) {put(old_payload_succ, PtI(old_payload_pred));}
+        // Set the next_block's succ to point to NULL
+        // put((char*)old_payload_pred_next + 8, PtI(NULL))
+        // put(free_root + 8, PtI(NULL); // succ
+
+        // // Set old_payload_pred's successor to old_payload_succ
+        // if(old_payload_pred != NULL) {put((char*)old_payload_pred + 8, PtI(old_payload_succ));} 
+
+        // // Set old_payload_succ's predesecor to old_payload_succ
+        // if(old_payload_succ != NULL) {put(old_payload_succ, PtI(old_payload_pred));}
 
         // Update the free root
         free_root = payload_pointer;

@@ -342,10 +342,9 @@ void* coalesce(void *payload_pointer){
     size_t next_block = get_alloc(GHA(next_blk(payload_pointer)));
     size_t block_size = get_size(GHA(payload_pointer));
 
-    // Save old free root
-    // void* tmp_free_root = free_root;
-    void* old_payload_succ = NULL;
-    void* old_payload_pred = NULL;
+    // Save old information
+    void* old_payload_succ;
+    void* old_payload_pred;
 
     // prev and next, allocated 
     if(prev_block && next_block){
@@ -368,8 +367,11 @@ void* coalesce(void *payload_pointer){
         put(GFA(payload_pointer), pack(block_size, 0));
 
         // Save next blocks payload pointer's old successor and predeseccor
-        memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
-        memcpy(old_payload_pred, next_blk(payload_pointer), 8); // pred
+        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
+        old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
+
+        // memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
+        // memcpy(old_payload_pred, next_blk(payload_pointer), 8); // pred
 
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
@@ -396,8 +398,11 @@ void* coalesce(void *payload_pointer){
         payload_pointer = prev_blk(payload_pointer);
 
         // Save payload pointers old successor and predeseccor
-        memcpy(old_payload_succ, (char*)payload_pointer + 8, 8); // succ
-        memcpy(old_payload_pred, payload_pointer, 8); // pred
+        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
+        old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
+
+        // memcpy(old_payload_succ, (char*)payload_pointer + 8, 8); // succ
+        // memcpy(old_payload_pred, payload_pointer, 8); // pred
 
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
@@ -419,7 +424,9 @@ void* coalesce(void *payload_pointer){
     // prev and next, not allocated
     else{
         // Save successor before modifying payload pointer
-        memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
+        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
+
+        //memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
 
         block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));
         put(GHA(prev_blk(payload_pointer)), pack(block_size,0));
@@ -427,8 +434,9 @@ void* coalesce(void *payload_pointer){
         payload_pointer = prev_blk(payload_pointer);
 
         // Save payload pointers old predeseccor
-        memcpy(old_payload_pred, payload_pointer, 8); // pred
-
+        old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
+        // memcpy(old_payload_pred, payload_pointer, 8); // pred
+        
         // Update curreent blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(free_root)); // succ

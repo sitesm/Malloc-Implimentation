@@ -518,8 +518,7 @@ void* find_fit(size_t block_size){
 * put_pointer: Places a pointer at addr
 */
 void put_pointer(void* addr, void* pointer){
-    // size_t pointer_addr = &pointer;
-    memset(addr, &(size_t*)pointer, 8);
-    // *(size_t)addr = &pointer;
+    // memset(addr, (size_t)pointer, 8);
+    *(size_t)addr = (size_t)pointer;
 }
 

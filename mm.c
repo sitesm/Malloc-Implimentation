@@ -503,7 +503,7 @@ void* find_fit(size_t block_size){
         }
 
         // if not big enough, go to next free block
-        memcpy(succ, succ+8, 8);
+        memset(succ, (size_t)(succ+8), 8);
     }
 
     // no block found

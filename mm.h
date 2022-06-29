@@ -10,7 +10,7 @@ extern void *mm_realloc(void *ptr, size_t size);
 extern void *mm_calloc (size_t nmemb, size_t size);
 
 #else
-
+//trigger update
 /* declare functions for interpositioning */
 extern void *malloc (size_t size);
 extern void free (void *ptr);
@@ -37,3 +37,4 @@ extern char *prev_blk(void* payload_pointer);
 extern char *next_blk(void* payload_pointer);
 extern void* coalesce(void *payload_pointer);
 extern size_t place(void* payload_pointer, size_t block_size);
+extern void* find_fit(size_t block_size);

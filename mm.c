@@ -104,6 +104,7 @@ void* malloc(size_t size){
 
     // Local payload_pointer
     char* payload_pointer;
+    size_t allocated_size;
 
     // size + header + footer alligned (in bytes)
     size_t block_size = align(size+16);
@@ -116,7 +117,12 @@ void* malloc(size_t size){
 
     // Search free list for a block that will fit size
     if((payload_pointer = find_fit(block_size)) != NULL){
-        place(payload_pointer, block_size);
+        allocated_size = place(payload_pointer, block_size);
+        if(payload_pointer == TOH){
+            // update 
+            TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
+        }
+
         return payload_pointer;
     }
 
@@ -137,7 +143,7 @@ void* malloc(size_t size){
     }
 
     // place the block at the top of the heap
-    size_t allocated_size = place((void*)TOH, block_size);
+    allocated_size = place((void*)TOH, block_size);
 
     // update 
     TOH = (allocated_size == block_size) ? (char*)tmp_pos : (char*)tmp_pos - block_size + allocated_size;

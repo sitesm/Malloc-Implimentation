@@ -430,7 +430,7 @@ void* coalesce(void *payload_pointer){
     // prev and next, not allocated
     else{      
         // Save old pred/succ of prev_block
-        void* old_payload_pred_next = ItP(*(size_t*)next_blk(payload_pointer)); // pred
+        // void* old_payload_pred_next = ItP(*(size_t*)next_blk(payload_pointer)); // pred
         void* old_payload_succ_next = ItP(*(size_t*)(next_blk(payload_pointer) + 8)); // succ
 
         block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));

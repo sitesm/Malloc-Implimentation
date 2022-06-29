@@ -244,17 +244,17 @@ bool allocate_page(){
     put(GFA(payload_pointer), pack(4096,0));
 
     // First free block being added
-    if(free_root == NULL){
-        put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(NULL)); // succ
-    }else{ // Adding to the free list
-        // Update current blocks pred/succ
-        put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(free_root)); // succ
+    // if(free_root == NULL){
+    //     put(payload_pointer, PtI(NULL)); // pred
+    //     put((char*)payload_pointer + 8, PtI(NULL)); // succ
+    // }else{ // Adding to the free list
+    //     // Update current blocks pred/succ
+    //     put(payload_pointer, PtI(NULL)); // pred
+    //     put((char*)payload_pointer + 8, PtI(free_root)); // succ
 
-        // Update previous blocks pred/succ
-        put(free_root, PtI(payload_pointer)); // pred
-    }
+    //     // Update previous blocks pred
+    //     put(free_root, PtI(payload_pointer)); // pred
+    // }
 
     // Set new epilogue header
     put(GHA(next_blk(payload_pointer)), pack(0,1));
@@ -366,9 +366,6 @@ void* coalesce(void *payload_pointer){
         old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
         old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
 
-        // memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
-        // memcpy(old_payload_pred, next_blk(payload_pointer), 8); // pred
-
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(free_root)); // succ
@@ -397,21 +394,18 @@ void* coalesce(void *payload_pointer){
         old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
         old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
 
-        // memcpy(old_payload_succ, (char*)payload_pointer + 8, 8); // succ
-        // memcpy(old_payload_pred, payload_pointer, 8); // pred
-
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(free_root)); // succ
+        if(payload_pointer != free_root) {put((char*)payload_pointer + 8, PtI(free_root));} // succ
 
         // Set free_root's predesecor to payload pointer
-        put(free_root, PtI(payload_pointer)); // pred
+       if(payload_pointer != free_root) {put(free_root, PtI(payload_pointer));} // pred
 
         // Set old_payload_pred's successor to old_payload_succ
-        put((char*)old_payload_pred + 8, PtI(old_payload_succ)); 
+        if(old_payload_pred != NULL) {put((char*)old_payload_pred + 8, PtI(old_payload_succ));}
 
         // Set old_payload_succ's predesecor to old_payload_succ
-        put(old_payload_succ, PtI(old_payload_pred));
+        if(old_payload_succ != NULL) {put(old_payload_succ, PtI(old_payload_pred));}
 
         // Update the free root
         free_root = payload_pointer;

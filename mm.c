@@ -253,12 +253,14 @@ bool allocate_page(){
         put((char*)payload_pointer + 8, PtI(NULL)); // succ
     }else{ // Adding to the free list
         // Update current blocks pred/succ
-        free_root = payload_pointer;
         put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
+        put((char*)payload_pointer + 8, PtI(free_root)); // succ
 
         // Update previous blocks pred/succ
-        put(tmp_free_root, PtI(payload_pointer)); // pred
+        put(free_root, PtI(payload_pointer)); // pred
+
+        // Update free root
+        free_root = payload_pointer;
     }
     
     // Set new epilogue header
@@ -344,19 +346,21 @@ void* coalesce(void *payload_pointer){
     size_t block_size = get_size(GHA(payload_pointer));
 
     // Save old free root
-    void* tmp_free_root = free_root;
+    // void* tmp_free_root = free_root;
     void* old_payload_succ = NULL;
     void* old_payload_pred = NULL;
 
     // prev and next, allocated (possibly[unlikley] allocate page)
     if(prev_block && next_block){
         // Update current blocks pred/succ
-        free_root = payload_pointer;
         put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
+        put((char*)payload_pointer + 8, PtI(free_root)); // succ
 
         // Update previous FR blocks pred
-        put(tmp_free_root, PtI(payload_pointer)); // pred
+        put(free_root, PtI(payload_pointer)); // pred
+
+        // Update the free root
+        free_root = payload_pointer;
 
         return(payload_pointer);
     }
@@ -371,18 +375,20 @@ void* coalesce(void *payload_pointer){
         memcpy(old_payload_pred, next_blk(payload_pointer), 8); // pred
 
         // Update current blocks pred/succ
-        free_root = payload_pointer;
         put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
+        put((char*)payload_pointer + 8, PtI(free_root)); // succ
 
-        // Set tmp_free_root's predesecor to payload_pointer
-        put(tmp_free_root, PtI(payload_pointer));
+        // Set free_root's predesecor to payload_pointer
+        put(free_root, PtI(payload_pointer));
 
         // Set old_payload_pred's successor to old_payload_succ
         put((char*)old_payload_pred + 8, PtI(old_payload_succ)); 
 
         // Set old_payload_succ's predesecor to old_payload_succ
         put(old_payload_succ, PtI(old_payload_pred));
+
+        // Update the free root
+        free_root = payload_pointer;
     }
 
     // prev not allocated, next allocated (allocate page)
@@ -397,18 +403,20 @@ void* coalesce(void *payload_pointer){
         memcpy(old_payload_pred, payload_pointer, 8); // pred
 
         // Update current blocks pred/succ
-        free_root = payload_pointer;
         put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
+        put((char*)payload_pointer + 8, PtI(free_root)); // succ
 
-        // Set tmp_free_root's predesecor to payload pointer
-        put(tmp_free_root, PtI(payload_pointer)); // pred
+        // Set free_root's predesecor to payload pointer
+        put(free_root, PtI(payload_pointer)); // pred
 
         // Set old_payload_pred's successor to old_payload_succ
         put((char*)old_payload_pred + 8, PtI(old_payload_succ)); 
 
         // Set old_payload_succ's predesecor to old_payload_succ
         put(old_payload_succ, PtI(old_payload_pred));
+
+        // Update the free root
+        free_root = payload_pointer;
     }
 
     // prev and next, not allocated
@@ -425,18 +433,20 @@ void* coalesce(void *payload_pointer){
         memcpy(old_payload_pred, payload_pointer, 8); // pred
 
         // Update curreent blocks pred/succ
-        free_root = payload_pointer;
         put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
+        put((char*)payload_pointer + 8, PtI(free_root)); // succ
 
         // Set tmp_free_root's predesecor to payload pointer
-        put(tmp_free_root, PtI(payload_pointer)); // pred
+        put(free_root, PtI(payload_pointer)); // pred
 
         // Set old_payload_pred's successor to old_payload_succ
         put((char*)old_payload_pred + 8, PtI(old_payload_succ)); 
 
         // Set old_payload_succ's predesecor to old_payload_succ
         put(old_payload_succ, PtI(old_payload_pred));
+
+        // Update the free root
+        free_root = payload_pointer;
     }
 
     return(payload_pointer);
@@ -450,7 +460,6 @@ size_t place(void* payload_pointer, size_t block_size){
     // Save old information
     size_t old_size = get_size(GHA(payload_pointer));
     size_t remainder = old_size - block_size;
-    void* tmp_free_root = free_root;
 
     // If the remaining block is going to be smaller than the minimum block size
     if(remainder < 32){
@@ -468,13 +477,15 @@ size_t place(void* payload_pointer, size_t block_size){
         put(GHA(next_blk(payload_pointer)), pack(remainder, 0)); 
         put(GFA(next_blk(payload_pointer)), pack(remainder, 0));     
 
-        // Add unused blocks ^^^  to the "remainder sized" free list
-        free_root = next_blk(payload_pointer);
+        // Add unused blocks ^^^ to the "remainder sized" free list
         put(next_blk(payload_pointer), PtI(NULL)); // pred
-        put(next_blk(payload_pointer) + 8, PtI(tmp_free_root)); // succ
+        put(next_blk(payload_pointer) + 8, PtI(free_root)); // succ
 
         // Update previous blocks pred/succ
-        put(tmp_free_root, PtI(payload_pointer)); // pred
+        put(free_root, PtI(payload_pointer)); // pred
+
+        // Update free root
+        free_root = next_blk(payload_pointer);
         
         return block_size;
     }
@@ -513,8 +524,7 @@ void* find_fit(size_t block_size){
 /*
 * put: Places a pointer at addr
 */
-// void put(void* addr, void* pointer){
-//     // memset(addr, (size_t)pointer, 8);
+// void put_pointer(void* addr, void* pointer){
 //     *(size_t*)addr = (size_t)pointer;
 // }
 
@@ -523,14 +533,13 @@ void* find_fit(size_t block_size){
 *                       so they can be used with the "put" function.
 */
 size_t PtI(void* pointer){
-    size_t* I = (void*)&pointer;
-    return *I;
+    return (size_t)pointer;
 }
 
 /*
 * Int to Pointer: Converts a size_t integer to its address form
 */
 void* ItP(size_t ptr_int){
-    return (void*)ptr_int;
+    return (void*)(ptr_int);
 }
 

@@ -56,7 +56,7 @@
 #define ALIGNMENT 16
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
-static char *free_root = NULL; // The root of the the free list (points to payload pointer; pred is always NULL)
+char *free_root = NULL; // The root of the the free list (points to payload pointer; pred is always NULL)
 static char *TOH = NULL; // next free payload pointer of the unallocated heap area
 
 /* rounds up to the nearest multiple of ALIGNMENT */
@@ -249,16 +249,16 @@ bool allocate_page(){
     // First free block being added
     if(free_root == NULL){
         free_root = payload_pointer;
-        put_pointer(payload_pointer, NULL); // pred
-        put_pointer((char*)payload_pointer + 8, NULL); // succ
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, NULL); // succ
     }else{ // Adding to the free list
         // Update current blocks pred/succ
         free_root = payload_pointer;
-        put_pointer(payload_pointer, NULL); // pred
-        put_pointer((char*)payload_pointer + 8, &tmp_free_root); // succ
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Update previous blocks pred/succ
-        put_pointer(tmp_free_root, &payload_pointer); // pred
+        put(tmp_free_root, PtI(payload_pointer)); // pred
     }
     
     // Set new epilogue header
@@ -352,11 +352,11 @@ void* coalesce(void *payload_pointer){
     if(prev_block && next_block){
         // Update current blocks pred/succ
         free_root = payload_pointer;
-        put_pointer(payload_pointer, NULL); // pred
-        put_pointer((char*)payload_pointer + 8, tmp_free_root); // succ
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Update previous FR blocks pred
-        put_pointer(tmp_free_root, payload_pointer); // pred
+        put(tmp_free_root, PtI(payload_pointer)); // pred
 
         return(payload_pointer);
     }
@@ -372,17 +372,17 @@ void* coalesce(void *payload_pointer){
 
         // Update current blocks pred/succ
         free_root = payload_pointer;
-        put_pointer(payload_pointer, NULL); // pred
-        put_pointer((char*)payload_pointer + 8, tmp_free_root); // succ
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Set tmp_free_root's predesecor to payload_pointer
-        put_pointer(tmp_free_root, payload_pointer);
+        put(tmp_free_root, PtI(payload_pointer));
 
         // Set old_payload_pred's successor to old_payload_succ
-        put_pointer((char*)old_payload_pred + 8, old_payload_succ); 
+        put((char*)old_payload_pred + 8, PtI(old_payload_succ)); 
 
         // Set old_payload_succ's predesecor to old_payload_succ
-        put_pointer(old_payload_succ, old_payload_pred);
+        put(old_payload_succ, PtI(old_payload_pred));
     }
 
     // prev not allocated, next allocated (allocate page)
@@ -398,17 +398,17 @@ void* coalesce(void *payload_pointer){
 
         // Update current blocks pred/succ
         free_root = payload_pointer;
-        put_pointer(payload_pointer, NULL); // pred
-        put_pointer((char*)payload_pointer + 8, tmp_free_root); // succ
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Set tmp_free_root's predesecor to payload pointer
-        put_pointer(tmp_free_root, payload_pointer); // pred
+        put(tmp_free_root, PtI(payload_pointer)); // pred
 
         // Set old_payload_pred's successor to old_payload_succ
-        put_pointer((char*)old_payload_pred + 8, old_payload_succ); 
+        put((char*)old_payload_pred + 8, PtI(old_payload_succ)); 
 
         // Set old_payload_succ's predesecor to old_payload_succ
-        put_pointer(old_payload_succ, old_payload_pred);
+        put(old_payload_succ, PtI(old_payload_pred));
     }
 
     // prev and next, not allocated
@@ -426,17 +426,17 @@ void* coalesce(void *payload_pointer){
 
         // Update curreent blocks pred/succ
         free_root = payload_pointer;
-        put_pointer(payload_pointer, NULL); // pred
-        put_pointer((char*)payload_pointer + 8, tmp_free_root); // succ
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Set tmp_free_root's predesecor to payload pointer
-        put_pointer(tmp_free_root, payload_pointer); // pred
+        put(tmp_free_root, PtI(payload_pointer)); // pred
 
         // Set old_payload_pred's successor to old_payload_succ
-        put_pointer((char*)old_payload_pred + 8, old_payload_succ); 
+        put((char*)old_payload_pred + 8, PtI(old_payload_succ)); 
 
         // Set old_payload_succ's predesecor to old_payload_succ
-        put_pointer(old_payload_succ, old_payload_pred);
+        put(old_payload_succ, PtI(old_payload_pred));
     }
 
     return(payload_pointer);
@@ -470,11 +470,11 @@ size_t place(void* payload_pointer, size_t block_size){
 
         // Add unused blocks ^^^  to the "remainder sized" free list
         free_root = next_blk(payload_pointer);
-        put_pointer(next_blk(payload_pointer), NULL); // pred
-        put_pointer(next_blk(payload_pointer) + 8, tmp_free_root); // succ
+        put(next_blk(payload_pointer), NULL); // pred
+        put(next_blk(payload_pointer) + 8, PtI(tmp_free_root)); // succ
 
         // Update previous blocks pred/succ
-        put_pointer(tmp_free_root, payload_pointer); // pred
+        put(tmp_free_root, PtI(payload_pointer)); // pred
         
         return block_size;
     }
@@ -502,10 +502,8 @@ void* find_fit(size_t block_size){
             return (void*)succ;
         }
 
-        // size_t next_succ =  
-
         // if not big enough, go to next free block
-        memset(succ, (size_t)(succ+8), 8);
+        succ = ItP(*(size_t*)succ);
     }
 
     // no block found
@@ -513,10 +511,26 @@ void* find_fit(size_t block_size){
 }
 
 /*
-* put_pointer: Places a pointer at addr
+* put: Places a pointer at addr
 */
-void put_pointer(void* addr, void* pointer){
-    // memset(addr, (size_t)pointer, 8);
-    *(size_t*)addr = (size_t)pointer;
+// void put(void* addr, void* pointer){
+//     // memset(addr, (size_t)pointer, 8);
+//     *(size_t*)addr = (size_t)pointer;
+// }
+
+/*
+* Pointer to Int (PtI): Converts a pointer value into its integer representation
+*                       so they can be used with the "put" function.
+*/
+size_t PtI(void* pointer){
+    size_t* I = (void*)&pointer;
+    return *I;
+}
+
+/*
+* Int to Pointer: Converts a size_t integer to its address form
+*/
+void* ItP(size_t ptr_int){
+    return (void*)ptr_int;
 }
 

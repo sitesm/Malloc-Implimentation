@@ -371,7 +371,7 @@ void* coalesce(void *payload_pointer){
 
         // Save next blocks payload pointer's old successor and predeseccor
         old_payload_succ = ItP(*(size_t*)(next_blk(payload_pointer) + 8)); // succ
-        old_payload_pred = ItP(*(size_t*)next_blk(payload_pointer); // pred
+        old_payload_pred = ItP(*(size_t*)next_blk(payload_pointer)); // pred
 
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred

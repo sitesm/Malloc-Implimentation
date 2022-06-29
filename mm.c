@@ -412,8 +412,8 @@ void* coalesce(void *payload_pointer){
             put((char*)payload_pointer + 8, PtI(free_root)); // succ
             put(free_root, PtI(payload_pointer));// pred
 
-            put((char*)old_payload_pred + 8, PtI(old_payload_succ));
-            put(old_payload_succ, PtI(old_payload_pred));
+            if(old_payload_pred != NULL) {put((char*)old_payload_pred + 8, PtI(old_payload_succ));} // succ
+            if(old_payload_succ != NULL) {put(old_payload_succ, PtI(old_payload_pred));}
         } 
 
 

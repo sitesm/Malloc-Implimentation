@@ -527,7 +527,7 @@ void* find_fit(size_t block_size){
         }
 
         // if not big enough, go to next free block
-        succ = ItP(*(size_t*)succ);
+        succ = ItP(*(size_t*)(succ + 8));
     }
 
     // no block found

@@ -345,6 +345,8 @@ void* coalesce(void *payload_pointer){
 
     // Save old free root
     void* tmp_free_root = free_root;
+    void* old_payload_succ = NULL;
+    void* old_payload_pred = NULL;
 
     // prev and next, allocated (possibly[unlikley] allocate page)
     if(prev_block && next_block){
@@ -365,8 +367,6 @@ void* coalesce(void *payload_pointer){
         put(GFA(payload_pointer), pack(block_size, 0));
 
         // Save next blocks payload pointer's old successor and predeseccor
-        void* old_payload_succ;
-        void* old_payload_pred;
         memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
         memcpy(old_payload_pred, next_blk(payload_pointer), 8); // pred
 
@@ -393,8 +393,6 @@ void* coalesce(void *payload_pointer){
         payload_pointer = prev_blk(payload_pointer);
 
         // Save payload pointers old successor and predeseccor
-        void* old_payload_succ;
-        void* old_payload_pred;
         memcpy(old_payload_succ, (char*)payload_pointer + 8, 8); // succ
         memcpy(old_payload_pred, payload_pointer, 8); // pred
 
@@ -416,7 +414,6 @@ void* coalesce(void *payload_pointer){
     // prev and next, not allocated
     else{
         // Save successor before modifying payload pointer
-        void* old_payload_succ;
         memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
 
         block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));
@@ -425,7 +422,6 @@ void* coalesce(void *payload_pointer){
         payload_pointer = prev_blk(payload_pointer);
 
         // Save payload pointers old predeseccor
-        void* old_payload_pred;
         memcpy(old_payload_pred, payload_pointer, 8); // pred
 
         // Update curreent blocks pred/succ

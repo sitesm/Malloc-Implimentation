@@ -352,7 +352,7 @@ void* coalesce(void *payload_pointer){
     if(prev_block && next_block){
         // Update current blocks pred/succ
         free_root = payload_pointer;
-        put(payload_pointer, NULL); // pred
+        put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Update previous FR blocks pred
@@ -372,7 +372,7 @@ void* coalesce(void *payload_pointer){
 
         // Update current blocks pred/succ
         free_root = payload_pointer;
-        put(payload_pointer, NULL); // pred
+        put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Set tmp_free_root's predesecor to payload_pointer
@@ -398,7 +398,7 @@ void* coalesce(void *payload_pointer){
 
         // Update current blocks pred/succ
         free_root = payload_pointer;
-        put(payload_pointer, NULL); // pred
+        put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Set tmp_free_root's predesecor to payload pointer
@@ -426,7 +426,7 @@ void* coalesce(void *payload_pointer){
 
         // Update curreent blocks pred/succ
         free_root = payload_pointer;
-        put(payload_pointer, NULL); // pred
+        put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(tmp_free_root)); // succ
 
         // Set tmp_free_root's predesecor to payload pointer
@@ -470,7 +470,7 @@ size_t place(void* payload_pointer, size_t block_size){
 
         // Add unused blocks ^^^  to the "remainder sized" free list
         free_root = next_blk(payload_pointer);
-        put(next_blk(payload_pointer), NULL); // pred
+        put(next_blk(payload_pointer), PtI(NULL)); // pred
         put(next_blk(payload_pointer) + 8, PtI(tmp_free_root)); // succ
 
         // Update previous blocks pred/succ

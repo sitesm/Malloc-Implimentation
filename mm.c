@@ -248,12 +248,12 @@ bool allocate_page(){
 
     // First free block being added
     if(free_root == NULL){
-        free_root = payload_pointer;
+        free_root = &payload_pointer;
         put_pointer(payload_pointer, NULL); // pred
         put_pointer((char*)payload_pointer + 8, NULL); // succ
     }else{ // Adding to the free list
         // Update current blocks pred/succ
-        free_root = payload_pointer;
+        free_root = &payload_pointer;
         put_pointer(payload_pointer, NULL); // pred
         put_pointer((char*)payload_pointer + 8, &tmp_free_root); // succ
 
@@ -501,6 +501,8 @@ void* find_fit(size_t block_size){
         if(size > block_size){
             return (void*)succ;
         }
+
+        size_t next_succ =  
 
         // if not big enough, go to next free block
         memset(succ, (size_t)(succ+8), 8);

@@ -502,7 +502,7 @@ void* find_fit(size_t block_size){
             return (void*)succ;
         }
 
-        size_t next_succ =  
+        // size_t next_succ =  
 
         // if not big enough, go to next free block
         memset(succ, (size_t)(succ+8), 8);

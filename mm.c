@@ -450,8 +450,13 @@ void* coalesce(void *payload_pointer){
         if(payload_pointer != free_root) {put(free_root, PtI(payload_pointer));} // pred
 
         // Set tmp_free_root's predesecor/successor to payload pointer
-        if(payload_pointer != free_root) {put(free_root + 8, PtI(old_payload_succ_next));} // pred
-        if(payload_pointer != free_root) {put(old_payload_succ_next, PtI(free_root));} // pred
+        if(old_payload_succ_next != payload_pointer) {
+            put(free_root + 8, PtI(old_payload_succ_next)); // succ
+            put(old_payload_succ_next, PtI(free_root));
+        }else{
+            put(free_root + 8, PtI(NULL));
+            put(old_payload_succ_next, PtI(free_root));
+        }
 
         // Set the next_block's succ to point to NULL
         // put((char*)old_payload_pred_next + 8, PtI(NULL))

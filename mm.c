@@ -370,21 +370,23 @@ void* coalesce(void *payload_pointer){
         put(GFA(payload_pointer), pack(block_size, 0));
 
         // Save next blocks payload pointer's old successor and predeseccor
-        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
-        old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
+        old_payload_succ = ItP(*(size_t*)(next_blk(payload_pointer) + 8)); // succ
+        old_payload_pred = ItP(*(size_t*)next_blk(payload_pointer); // pred
 
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(free_root)); // succ
+        put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
 
-        // Set free_root's predesecor to payload_pointer
-        put(free_root, PtI(payload_pointer));
+        if(old_payload_succ != NULL){ put(old_payload_succ, PtI(payload_pointer));} // pred
 
-        // Set old_payload_pred's successor to old_payload_succ
-        put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+        // // Set free_root's predesecor to payload_pointer
+        // put(free_root, PtI(payload_pointer));
 
-        // Set old_payload_succ's predesecor to old_payload_succ
-        put(old_payload_succ, PtI(old_payload_pred));
+        // // Set old_payload_pred's successor to old_payload_succ
+        // put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+
+        // // Set old_payload_succ's predesecor to old_payload_succ
+        // put(old_payload_succ, PtI(old_payload_pred));
 
         // Update the free root
         free_root = payload_pointer;

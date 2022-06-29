@@ -471,7 +471,7 @@ size_t place(void* payload_pointer, size_t block_size){
 
         // Save next blocks payload pointer's old successor and predeseccor
         old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
-        old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
+        // old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
 
         // set the header and footer of the just the allocated block
         put(GHA(payload_pointer), pack(block_size, 1));

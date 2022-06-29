@@ -38,3 +38,4 @@ extern char *next_blk(void* payload_pointer);
 extern void* coalesce(void *payload_pointer);
 extern size_t place(void* payload_pointer, size_t block_size);
 extern void* find_fit(size_t block_size);
+extern void put_pointer(void* addr, void* pointer);

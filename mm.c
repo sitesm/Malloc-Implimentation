@@ -454,6 +454,7 @@ size_t place(void* payload_pointer, size_t block_size){
     // Save old information
     size_t old_size = get_size(GHA(payload_pointer));
     size_t remainder = old_size - block_size;
+    void* tmp_free_root = free_root;
 
     // If the remaining block is going to be smaller than the minimum block size
     if(remainder < 32){
@@ -506,7 +507,7 @@ void* find_fit(size_t block_size){
         }
 
         // if not big enough, go to next free block
-        succ = *(succ + 8);
+        memcpy(succ, succ+8, 8);
     }
 
     // no block found
@@ -517,6 +518,7 @@ void* find_fit(size_t block_size){
 * put_pointer: Places a pointer at addr
 */
 void put_pointer(void* addr, void* pointer){
-    *(size_t)addr = &pointer;
+    memset(addr, &pointer, 8)
+    // *(size_t)addr = &pointer;
 }
 

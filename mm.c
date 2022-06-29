@@ -358,6 +358,7 @@ void* coalesce(void *payload_pointer){
     }
     // prev allocated, next not allocated
     else if(prev_block && !next_block){
+
         block_size += get_size(GHA(next_blk(payload_pointer)));
         put(GHA(payload_pointer), pack(block_size,0));
         put(GFA(payload_pointer), pack(block_size, 0));
@@ -396,10 +397,14 @@ void* coalesce(void *payload_pointer){
 
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
-        if(payload_pointer != free_root) {put((char*)payload_pointer + 8, PtI(free_root));} // succ
+        if(payload_pointer == free_root) { 
+            put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
+            put(free_root, PtI(NULL)); // pred
+        }else{
+            put((char*)payload_pointer + 8, PtI(free_root)); // succ
+            put(free_root, PtI(payload_pointer));// pred
+        } 
 
-        // Set free_root's predesecor to payload pointer
-       if(payload_pointer != free_root) {put(free_root, PtI(payload_pointer));} // pred
 
         // Set old_payload_pred's successor to old_payload_succ
         if(old_payload_pred != NULL) {put((char*)old_payload_pred + 8, PtI(old_payload_succ));}
@@ -512,13 +517,6 @@ void* find_fit(size_t block_size){
     // no block found
     return NULL;
 }
-
-/*
-* put: Places a pointer at addr
-*/
-// void put_pointer(void* addr, void* pointer){
-//     *(size_t*)addr = (size_t)pointer;
-// }
 
 /*
 * Pointer to Int (PtI): Converts a pointer value into its integer representation

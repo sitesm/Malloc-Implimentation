@@ -458,7 +458,7 @@ size_t place(void* payload_pointer, size_t block_size){
     size_t old_size = get_size(GHA(payload_pointer));
     size_t remainder = old_size - block_size;
     void* old_payload_succ;
-    void* old_payload_pred;
+    // void* old_payload_pred;
 
     // If the remaining block is going to be smaller than the minimum block size
     if(remainder < 32){

@@ -245,7 +245,7 @@ bool allocate_page(){
 
     // First free block being added
     if(free_root == NULL){
-        free_root = payload_pointer;
+        //free_root = payload_pointer; Will be updated in coalesce
         put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(NULL)); // succ
     }else{ // Adding to the free list
@@ -257,9 +257,9 @@ bool allocate_page(){
         put(free_root, PtI(payload_pointer)); // pred
 
         // Update free root
-        free_root = payload_pointer;
+        //free_root = payload_pointer; Will be updated in coalesce
     }
-    
+
     // Set new epilogue header
     put(GHA(next_blk(payload_pointer)), pack(0,1));
     
@@ -347,7 +347,7 @@ void* coalesce(void *payload_pointer){
     void* old_payload_succ = NULL;
     void* old_payload_pred = NULL;
 
-    // prev and next, allocated (possibly[unlikley] allocate page)
+    // prev and next, allocated 
     if(prev_block && next_block){
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred

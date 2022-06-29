@@ -243,9 +243,6 @@ bool allocate_page(){
     put(GHA(payload_pointer), pack(4096,0)); // Overwrites old epilogue header
     put(GFA(payload_pointer), pack(4096,0));
 
-    // Save old free root
-    void* tmp_free_root = free_root;
-
     // First free block being added
     if(free_root == NULL){
         free_root = payload_pointer;

@@ -492,7 +492,7 @@ size_t place(void* payload_pointer, size_t block_size){
         // Add unused blocks ^^^ to the "remainder sized" free list
         put(next_blk(payload_pointer), PtI(NULL)); // pred
         put(next_blk(payload_pointer) + 8, PtI(old_payload_succ)); // succ
-        if(old_payload_succ != NULL){ put(old_payload_succ, PtI(payload_pointer));} // pred
+        if(old_payload_succ != NULL){ put(old_payload_succ, PtI(next_blk(payload_pointer)));} // pred
 
         // // Update previous blocks pred/succ
         // put(free_root, PtI(payload_pointer)); // pred

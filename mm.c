@@ -411,14 +411,17 @@ void* coalesce(void *payload_pointer){
         }else{
             put((char*)payload_pointer + 8, PtI(free_root)); // succ
             put(free_root, PtI(payload_pointer));// pred
+
+            put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+            put(old_payload_succ, PtI(old_payload_pred));
         } 
 
 
-        // Set old_payload_pred's successor to old_payload_succ
-        if(old_payload_pred != NULL) {put((char*)old_payload_pred + 8, PtI(old_payload_succ));}
+        // // Set old_payload_pred's successor to old_payload_succ
+        // if(old_payload_pred != NULL) {put((char*)old_payload_pred + 8, PtI(old_payload_succ));} // succ
 
-        // Set old_payload_succ's predesecor to old_payload_succ
-        if(old_payload_succ != NULL) {put(old_payload_succ, PtI(old_payload_pred));}
+        // // Set old_payload_succ's predesecor to old_payload_succ
+        // if(old_payload_succ != NULL) {put(old_payload_succ, PtI(old_payload_pred));}
 
         // Update the free root
         free_root = payload_pointer;
@@ -466,13 +469,20 @@ size_t place(void* payload_pointer, size_t block_size){
     size_t old_size = get_size(GHA(payload_pointer));
     size_t remainder = old_size - block_size;
     void* old_payload_succ;
-    // void* old_payload_pred;
+    void* old_payload_pred;
 
     // If the remaining block is going to be smaller than the minimum block size
     if(remainder < 32){
         // set the header and footer of the whole allocated block
         put(GHA(payload_pointer), pack(old_size, 1));
         put(GFA(payload_pointer), pack(old_size, 1)); 
+
+        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8));
+        old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
+
+        // Jump over fully allocated free block
+        put(old_payload_pred + 8, PtI(old_paylaod_succ); // pred
+        put(old_payload_succ, PtI(old_paylaod_pred); // succ
 
         return old_size;
     }else{ // Only split if remainder >= 32

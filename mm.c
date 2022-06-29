@@ -56,7 +56,7 @@
 #define ALIGNMENT 16
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
-// static char *free_root = NULL; // The root of the the free list
+static char *free_root = NULL; // The root of the the free list (points to payload pointer; pred is always NULL)
 static char *TOH = NULL; // next free payload pointer of the unallocated heap area
 
 /* rounds up to the nearest multiple of ALIGNMENT */
@@ -102,6 +102,9 @@ bool mm_init(void){
  */
 void* malloc(size_t size){
 
+    // Local payload_pointer
+    char* payload_pointer;
+
     // size + header + footer alligned (in bytes)
     size_t block_size = align(size+16);
 
@@ -112,21 +115,15 @@ void* malloc(size_t size){
     }
 
     // Search free list for a block that will fit size
-
-    /* 
-    * If you find a block, put it there and add 
-    * the remaining bytes to the free list.
-    */
+    if(payload_pointer = find_fit(block_size) != NULL){
+        place(payload_pointer, block_size);
+        return payload_pointer;
+    }
 
     /***************************************************
     * When there is no blocks in the free list suitable
     * to fit the block size, add it to the top of heap
     ****************************************************/
-
-    // if placing at TOH, make sure TOH is as far back as possible
-    // NOTE: Might be time expensive to do this every malloc
-    // NO LONGER NEEDED?: solved in mm_free
-    // TOH = coalesce(TOH);
 
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
@@ -168,7 +165,7 @@ void free(void* payload_pointer)
         if((char*)payload_pointer + size == TOH){
             TOH = coalesce(payload_pointer);
         }else{
-            coalesce(payload_pointer); // Add this to free list when you get there
+            coalesce(payload_pointer); 
         }
     } 
 }
@@ -246,9 +243,24 @@ bool allocate_page(){
     put(GHA(payload_pointer), pack(4096,0)); // Overwrites old epilogue header
     put(GFA(payload_pointer), pack(4096,0));
 
-    // Set prev/next free block
-    // memset((char*)block_pointer + 4, &free_root, 8);
+    // Save old free root
+    void* tmp_free_root = free_root;
 
+    // First free block being added
+    if(free_root == NULL){
+        free_root = payload_pointer;
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, NULL); // succ
+    }else{ // Adding to the free list
+        // Update current blocks pred/succ
+        free_root = payload_pointer;
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, &tmp_free_root); // succ
+
+        // Update previous blocks pred/succ
+        put(tmp_free_root, &payload_pointer); // pred
+    }
+    
     // Set new epilogue header
     put(GHA(next_blk(payload_pointer)), pack(0,1));
     
@@ -331,8 +343,19 @@ void* coalesce(void *payload_pointer){
     size_t next_block = get_alloc(GHA(next_blk(payload_pointer)));
     size_t block_size = get_size(GHA(payload_pointer));
 
-    // prev and next, allocated
+    // Save old free root
+    void* tmp_free_root = free_root;
+
+    // prev and next, allocated (possibly[unlikley] allocate page)
     if(prev_block && next_block){
+        // Update current blocks pred/succ
+        free_root = payload_pointer;
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, &tmp_free_root); // succ
+
+        // Update previous FR blocks pred
+        put(tmp_free_root, &payload_pointer); // pred
+
         return(payload_pointer);
     }
     // prev allocated, next not allocated
@@ -340,22 +363,84 @@ void* coalesce(void *payload_pointer){
         block_size += get_size(GHA(next_blk(payload_pointer)));
         put(GHA(payload_pointer), pack(block_size,0));
         put(GFA(payload_pointer), pack(block_size, 0));
+
+        // Save next blocks payload pointer's old successor and predeseccor
+        void* old_payload_succ;
+        void* old_payload_pred;
+        memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
+        memcpy(old_payload_pred, next_blk(payload_pointer), 8); // pred
+
+        // Update current blocks pred/succ
+        free_root = payload_pointer;
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, &tmp_free_root); // succ
+
+        // Set tmp_free_root's predesecor to payload_pointer
+        put(tmp_free_root, &payload_pointer);
+
+        // Set old_payload_pred's successor to old_payload_succ
+        put((char*)old_payload_pred + 8, &old_payload_succ); 
+
+        // Set old_payload_succ's predesecor to old_payload_succ
+        put(old_payload_succ, &old_payload_pred);
     }
 
-    // prev not allocated, next allocated
+    // prev not allocated, next allocated (allocate page)
     else if(!prev_block && next_block){
         block_size += get_size(GHA(prev_blk(payload_pointer)));
         put(GFA(payload_pointer), pack(block_size,0));
         put(GHA(prev_blk(payload_pointer)), pack(block_size, 0));
         payload_pointer = prev_blk(payload_pointer);
+
+        // Save payload pointers old successor and predeseccor
+        void* old_payload_succ;
+        void* old_payload_pred;
+        memcpy(old_payload_succ, (char*)payload_pointer + 8, 8); // succ
+        memcpy(old_payload_pred, payload_pointer, 8); // pred
+
+        // Update current blocks pred/succ
+        free_root = payload_pointer;
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, &tmp_free_root); // succ
+
+        // Set tmp_free_root's predesecor to payload pointer
+        put(tmp_free_root, &payload_pointer); // pred
+
+        // Set old_payload_pred's successor to old_payload_succ
+        put((char*)old_payload_pred + 8, &old_payload_succ); 
+
+        // Set old_payload_succ's predesecor to old_payload_succ
+        put(old_payload_succ, &old_payload_pred);
     }
 
     // prev and next, not allocated
     else{
+        // Save successor before modifying payload pointer
+        void* old_payload_succ;
+        memcpy(old_payload_succ, next_blk(payload_pointer) + 8, 8); // succ
+
         block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));
         put(GHA(prev_blk(payload_pointer)), pack(block_size,0));
         put(GFA(next_blk(payload_pointer)), pack(block_size,0));
         payload_pointer = prev_blk(payload_pointer);
+
+        // Save payload pointers old predeseccor
+        void* old_payload_pred;
+        memcpy(old_payload_pred, payload_pointer, 8); // pred
+
+        // Update curreent blocks pred/succ
+        free_root = payload_pointer;
+        put(payload_pointer, NULL); // pred
+        put((char*)payload_pointer + 8, &tmp_free_root); // succ
+
+        // Set tmp_free_root's predesecor to payload pointer
+        put(tmp_free_root, &payload_pointer); // pred
+
+        // Set old_payload_pred's successor to old_payload_succ
+        put((char*)old_payload_pred + 8, &old_payload_succ); 
+
+        // Set old_payload_succ's predesecor to old_payload_succ
+        put(old_payload_succ, &old_payload_pred);
     }
 
     return(payload_pointer);
@@ -387,7 +472,44 @@ size_t place(void* payload_pointer, size_t block_size){
         put(GFA(next_blk(payload_pointer)), pack(remainder, 0));     
 
         // Add unused blocks ^^^  to the "remainder sized" free list
+        free_root = next_blk(payload_pointer);
+        put(next_blk(payload_pointer), NULL); // pred
+        put(next_blk(payload_pointer) + 8, &tmp_free_root); // succ
 
+        // Update previous blocks pred/succ
+        put(tmp_free_root, &payload_pointer); // pred
+        
         return block_size;
     }
 } 
+
+/*
+* find_fit: finds the first fit starting from the free_root
+*/
+void* find_fit(size_t block_size){
+
+    // Check to see if any blocks have been added to the free list yet
+    if(free_root == NULL){
+        return NULL;
+    }
+
+    // Set the initial succ pointer
+    char* succ = free_root;
+
+    while(succ != NULL){
+        //get block size
+        size_t size = get_size(GHA(succ));
+
+        // check if its large enough
+        if(size > block_size){
+            return (void*)succ;
+        }
+
+        // if not big enough, go to next free block
+        succ = *(succ + 8);
+    }
+
+    // no block found
+    return NULL;
+}
+

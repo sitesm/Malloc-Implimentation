@@ -354,7 +354,7 @@ void* coalesce(void *payload_pointer){
         put((char*)payload_pointer + 8, PtI(free_root)); // succ
 
         // Update previous FR blocks pred
-        if(free_root != (NULL || (char*)0x0)) {put(free_root, PtI(payload_pointer));} // pred
+        if(free_root != NULL) {put(free_root, PtI(payload_pointer));} // pred
 
         // Update the free root
         free_root = payload_pointer;

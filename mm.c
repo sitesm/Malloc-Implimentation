@@ -422,6 +422,7 @@ void* coalesce(void *payload_pointer){
         // Save old pred/succ of prev_block
         void* old_payload_succ_next = ItP(*(size_t*)(next_blk(payload_pointer) + 8)); // succ
         bool next_blk_FR = next_blk(payload_pointer) == free_root;
+        void* next_free_block = next_blk(payload_pointer);
 
         block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));
         put(GHA(prev_blk(payload_pointer)), pack(block_size,0));
@@ -445,6 +446,13 @@ void* coalesce(void *payload_pointer){
             }else{
                 put((char*)payload_pointer + 8, PtI(old_payload_succ_next));// succ
                 put(old_payload_succ_next, PtI(payload_pointer));// succ
+            }
+        }else if(payload_pointer == free_root){
+            if(old_payload_succ == next_free_block){
+                put((char*)payload_pointer + 8, old_payload_succ_next);
+                if(old_payload_succ_next != NULL){
+                    put(old_payload_succ_next, payload_pointer);
+                }
             }
         }
 

@@ -468,8 +468,8 @@ size_t place(void* payload_pointer, size_t block_size){
     size_t remainder = old_size - block_size;
 
     // Save next blocks payload pointer's old successor and predeseccor
-    void* old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8));;
-    void* old_payload_pred = ItP(*(size_t*)payload_pointer);;
+    void* old_payload_succ = ItP(get((char*)payload_pointer + 8));
+    void* old_payload_pred = ItP(get(payload_pointer));
 
     // If the remaining block is going to be smaller than the minimum block size
     if(remainder < 32){
@@ -477,9 +477,17 @@ size_t place(void* payload_pointer, size_t block_size){
         put(GHA(payload_pointer), pack(old_size, 1));
         put(GFA(payload_pointer), pack(old_size, 1)); 
 
-        // Jump over fully allocated free block
-        put(old_payload_pred + 8, PtI(old_payload_succ)); // pred
-        put(old_payload_succ, PtI(old_payload_pred)); // succ
+        if(payload_pointer != free_root){
+            // Jump over fully allocated free block
+            put(old_payload_pred + 8, PtI(old_payload_succ)); // pred
+            if(old_payload_succ != NULL){
+                put(old_payload_succ, PtI(old_payload_pred)); // succ      
+            }
+        }else{ // paylaod_pointer == free_root
+            // Update free root
+            put(old_payload_succ, PtI(NULL)); // pred
+            free_root = old_payload_succ;
+        }
 
         return old_size;
     }else{ // Only split if remainder >= 32
@@ -510,7 +518,7 @@ size_t place(void* payload_pointer, size_t block_size){
                 }
             }
              
-        }else{ // No free root is set yet
+        }else{ // No free root is set yet (99% sure will never happen)
             put(next_blk(payload_pointer), PtI(NULL)); // pred
             put(next_blk(payload_pointer) + 8, PtI(NULL)); // pred
         }
@@ -545,7 +553,7 @@ void* find_fit(size_t block_size){
         }
 
         // if not big enough, go to next free block
-        succ = ItP(*(size_t*)(succ + 8));
+        succ = ItP(get(succ + 8));
     }
 
     // no block found

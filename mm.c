@@ -448,12 +448,11 @@ void* coalesce(void *payload_pointer){
         }
 
         if(old_payload_succ_next == payload_pointer) {
-                put(free_root + 8, PtI(NULL)); // succ
-            }else{
-                put(free_root + 8, PtI(old_payload_succ_next));
-                put(old_payload_succ_next, PtI(free_root));
-            }
-        }   
+            put(free_root + 8, PtI(NULL)); // succ
+        }else{
+            put(free_root + 8, PtI(old_payload_succ_next));
+            put(old_payload_succ_next, PtI(free_root));
+        }  
 
         // Update the free root
         free_root = payload_pointer;

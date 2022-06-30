@@ -41,3 +41,4 @@ extern void* find_fit(size_t block_size);
 extern void put_pointer(void* addr, void* pointer);
 extern size_t PtI(void* pointer);
 extern void* ItP(size_t ptr_int);
+extern void* find_first(void* addr1, void* addr2);

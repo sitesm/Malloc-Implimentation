@@ -379,18 +379,18 @@ void* coalesce(void *payload_pointer){
 
         if(old_payload_succ != NULL){ put(old_payload_succ, PtI(payload_pointer));} // pred
 
-        // // Set free_root's predesecor to payload_pointer
-        // put(free_root, PtI(payload_pointer));
-
-        // // Set old_payload_pred's successor to old_payload_succ
-        // put((char*)old_payload_pred + 8, PtI(old_payload_succ));
-
-        // // Set old_payload_succ's predesecor to old_payload_succ
-        // put(old_payload_succ, PtI(old_payload_pred));
-
         // Update the free root
         free_root = payload_pointer;
     }
+
+
+
+
+
+
+
+
+
 
     // prev not allocated, next allocated (allocate page)
     else if(!prev_block && next_block){
@@ -444,19 +444,32 @@ void* coalesce(void *payload_pointer){
         
         // Update curreent blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
-        if(payload_pointer != free_root) {put((char*)payload_pointer + 8, PtI(free_root));} // succ
+        if(payload_pointer != free_root) {
+            put((char*)payload_pointer + 8, PtI(free_root));// succ
+            put(free_root, PtI(payload_pointer)); // pred
+            
+        } 
 
-        // Set tmp_free_root's predesecor to payload pointer
-        if(payload_pointer != free_root) {put(free_root, PtI(payload_pointer));} // pred
-
-        // Set tmp_free_root's predesecor/successor to payload pointer
-        if(old_payload_succ_next != payload_pointer) {
-            put(free_root + 8, PtI(old_payload_succ_next)); // succ
-            put(old_payload_succ_next, PtI(free_root));
+        if(old_payload_succ_next == payload_pointer) {
+            put(free_root + 8, PtI(NULL)); // succ
         }else{
-            put(free_root + 8, PtI(NULL));
+            put(free_root + 8, PtI(old_payload_succ_next));
             put(old_payload_succ_next, PtI(free_root));
         }
+
+        // if(payload_pointer != free_root) {put((char*)payload_pointer + 8, PtI(free_root));} // succ
+
+        // Set tmp_free_root's predesecor to payload pointer
+        // if(payload_pointer != free_root) {put(free_root, PtI(payload_pointer));} // pred
+
+        // // Set tmp_free_root's predesecor/successor to payload pointer
+        // if(old_payload_succ_next != payload_pointer) {
+        //     put(free_root + 8, PtI(old_payload_succ_next)); // succ
+        //     put(old_payload_succ_next, PtI(free_root));
+        // }else{
+        //     put(free_root + 8, PtI(NULL));
+        //     put(old_payload_succ_next, PtI(free_root));
+        // }
 
         // Set the next_block's succ to point to NULL
         // put((char*)old_payload_pred_next + 8, PtI(NULL))

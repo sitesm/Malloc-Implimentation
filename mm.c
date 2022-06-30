@@ -500,6 +500,16 @@ size_t place(void* payload_pointer, size_t block_size){
         put(GHA(next_blk(payload_pointer)), pack(remainder, 0)); 
         put(GFA(next_blk(payload_pointer)), pack(remainder, 0));     
 
+        /* ADDRESS ORDER APPROACH
+        if this doesnt work, try this:
+        ---------------------------------
+        old_payload_pred + 8 -> next_blk(payload_pointer);
+        next_blk -> old_paylaod_pred;
+        next_blk(payload_pointer) + 8 -> old_paylaod_succ;
+        if(old_payload_succ != NULL):
+            old_payload_succ ->  next_blk(payload_pointer);
+        */
+
         if(free_root != NULL){ 
 
             if(payload_pointer != free_root){

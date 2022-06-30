@@ -449,9 +449,9 @@ void* coalesce(void *payload_pointer){
             }
         }else if(payload_pointer == free_root){
             if(old_payload_succ == next_free_block){
-                put((char*)payload_pointer + 8, old_payload_succ_next);
+                put((char*)payload_pointer + 8, PtI(old_payload_succ_next));
                 if(old_payload_succ_next != NULL){
-                    put(old_payload_succ_next, payload_pointer);
+                    put(old_payload_succ_next, PtI(payload_pointer));
                 }
             }
         }

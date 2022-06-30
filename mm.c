@@ -365,13 +365,13 @@ void* coalesce(void *payload_pointer){
     // prev allocated, next not allocated
     else if(prev_block && !next_block){
 
-        block_size += get_size(GHA(next_blk(payload_pointer)));
-        put(GHA(payload_pointer), pack(block_size,0));
-        put(GFA(payload_pointer), pack(block_size, 0));
-
         // Save next blocks payload pointer's old successor and predeseccor
         old_payload_succ = ItP(*(size_t*)(next_blk(payload_pointer) + 8)); // succ
         old_payload_pred = ItP(*(size_t*)next_blk(payload_pointer)); // pred
+        
+        block_size += get_size(GHA(next_blk(payload_pointer)));
+        put(GHA(payload_pointer), pack(block_size,0));
+        put(GFA(payload_pointer), pack(block_size, 0));
 
         // Update current blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred

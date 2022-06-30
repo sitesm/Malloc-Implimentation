@@ -249,18 +249,6 @@ bool allocate_page(){
     put(GHA(payload_pointer), pack(4096,0)); // Overwrites old epilogue header
     put(GFA(payload_pointer), pack(4096,0));
 
-    // First free block being added
-    // if(free_root == NULL){
-    //     put(payload_pointer, PtI(NULL)); // pred
-    //     put((char*)payload_pointer + 8, PtI(NULL)); // succ
-    // }else{ // Adding to the free list
-    //     // Update current blocks pred/succ
-    //     put(payload_pointer, PtI(NULL)); // pred
-    //     put((char*)payload_pointer + 8, PtI(free_root)); // succ
-    //     // Update previous blocks pred
-    //     put(free_root, PtI(payload_pointer)); // pred
-    // }
-
     // Set new epilogue header
     put(GHA(next_blk(payload_pointer)), pack(0,1));
     
@@ -478,17 +466,16 @@ size_t place(void* payload_pointer, size_t block_size){
     // Save old information
     size_t old_size = get_size(GHA(payload_pointer));
     size_t remainder = old_size - block_size;
-    void* old_payload_succ;
-    void* old_payload_pred;
+
+    // Save next blocks payload pointer's old successor and predeseccor
+    void* old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8));;
+    void* old_payload_pred = ItP(*(size_t*)payload_pointer);;
 
     // If the remaining block is going to be smaller than the minimum block size
     if(remainder < 32){
         // set the header and footer of the whole allocated block
         put(GHA(payload_pointer), pack(old_size, 1));
         put(GFA(payload_pointer), pack(old_size, 1)); 
-
-        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8));
-        old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
 
         // Jump over fully allocated free block
         put(old_payload_pred + 8, PtI(old_payload_succ)); // pred
@@ -497,25 +484,36 @@ size_t place(void* payload_pointer, size_t block_size){
         return old_size;
     }else{ // Only split if remainder >= 32
 
-        // Save next blocks payload pointer's old successor and predeseccor
-        old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
-        // old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
-
         // set the header and footer of the just the allocated block
         put(GHA(payload_pointer), pack(block_size, 1));
         put(GFA(payload_pointer), pack(block_size, 1)); 
 
-        // // Set header and footer for un-used bytes 
+        // Set header and footer for un-used bytes 
         put(GHA(next_blk(payload_pointer)), pack(remainder, 0)); 
         put(GFA(next_blk(payload_pointer)), pack(remainder, 0));     
 
-        // Add unused blocks ^^^ to the "remainder sized" free list
-        put(next_blk(payload_pointer), PtI(NULL)); // pred
-        put(next_blk(payload_pointer) + 8, PtI(old_payload_succ)); // succ
-        if(old_payload_succ != NULL){ put(old_payload_succ, PtI(next_blk(payload_pointer)));} // pred
+        if(free_root != NULL){ 
 
-        // // Update previous blocks pred/succ
-        // put(free_root, PtI(payload_pointer)); // pred
+            if(payload_pointer != free_root){
+                put(next_blk(payload_pointer), PtI(NULL)); // pred
+                put(next_blk(payload_pointer) + 8, PtI(free_root)); // succ
+                put(free_root, PtI(next_blk(payload_pointer))); // pred
+                put((char*)old_payload_pred + 8, old_payload_succ);
+                if(old_payload_succ != NULL){ 
+                    put(old_payload_succ, PtI(old_payload_pred); // pred
+                }
+            }else{ // Payload pointer is the free root
+                put(next_blk(payload_pointer), PtI(NULL)); // pred
+                put(next_blk(payload_pointer) + 8, PtI(old_payload_succ)); // succ
+                if(old_payload_succ != NULL){
+                    put(old_payload_succ, PtI(next_blk(payload_pointer))); // succ
+                }
+            }
+             
+        }else{ // No free root is set yet
+            put(next_blk(payload_pointer), PtI(NULL)); // pred
+            put(next_blk(payload_pointer) + 8, PtI(NULL)); // pred
+        }
 
         // Update free root
         free_root = next_blk(payload_pointer);
@@ -534,7 +532,7 @@ void* find_fit(size_t block_size){
         return NULL;
     }
 
-    // Set the initial succ pointer
+    // Set the initial successor pointer
     char* succ = free_root;
 
     while(succ != NULL){
@@ -568,4 +566,6 @@ size_t PtI(void* pointer){
 void* ItP(size_t ptr_int){
     return (void*)(ptr_int);
 }
+
+
 

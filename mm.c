@@ -421,6 +421,7 @@ void* coalesce(void *payload_pointer){
     else{      
         // Save old pred/succ of prev_block
         void* old_payload_succ_next = ItP(*(size_t*)(next_blk(payload_pointer) + 8)); // succ
+        bool next_blk_FR = next_blk(payload_pointer) == free_root;
 
         block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));
         put(GHA(prev_blk(payload_pointer)), pack(block_size,0));
@@ -433,18 +434,26 @@ void* coalesce(void *payload_pointer){
         
         // Update curreent blocks pred/succ
         put(payload_pointer, PtI(NULL)); // pred
-        if(payload_pointer != free_root) {
+
+        if(payload_pointer != free_root && !next_blk_FR) {
             put((char*)payload_pointer + 8, PtI(free_root));// succ
-            put(free_root, PtI(payload_pointer)); // pred
-            
-        } 
+            put(free_root, PtI(payload_pointer)); // pred     
+        }else if(next_blk_FR){
+            if(old_payload_succ_next == payload_pointer){
+                put((char*)payload_pointer + 8, PtI(old_payload_succ));
+                put(old_payload_succ, PtI(payload_pointer));
+            }else{
+                put((char*)payload_pointer + 8, PtI(old_payload_succ_next));// succ
+            }
+        }
 
         if(old_payload_succ_next == payload_pointer) {
-            put(free_root + 8, PtI(NULL)); // succ
-        }else{
-            put(free_root + 8, PtI(old_payload_succ_next));
-            put(old_payload_succ_next, PtI(free_root));
-        }
+                put(free_root + 8, PtI(NULL)); // succ
+            }else{
+                put(free_root + 8, PtI(old_payload_succ_next));
+                put(old_payload_succ_next, PtI(free_root));
+            }
+        }   
 
         // Update the free root
         free_root = payload_pointer;

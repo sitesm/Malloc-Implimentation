@@ -371,25 +371,35 @@ void* coalesce(void *payload_pointer){
 
         return(payload_pointer);
     }
+
     // prev allocated, next not allocated
     else if(prev_block && !next_block){
 
         // Save next blocks payload pointer's old successor and predeseccor
         old_payload_succ = ItP(get(next_blk(payload_pointer) + 8)); // succ
         old_payload_pred = ItP(get(next_blk(payload_pointer))); // pred
+        void* old_next_blk = next_blk(payload_pointer);
 
         // Update block information
         block_size += get_size(GHA(next_blk(payload_pointer)));
         put(GHA(payload_pointer), pack(block_size, 0));
         put(GFA(payload_pointer), pack(block_size, 0));
 
-        // Update free_list
-        put(payload_pointer, PtI(NULL)); // pred
-        put((char*)payload_pointer + 8, PtI(free_root)); // succ
-        put(free_root, PtI(payload_pointer)); // pred
-        put((char*)old_payload_pred + 8, PtI(old_payload_succ));
-        if(old_payload_succ != NULL){ 
-            put(old_payload_succ, PtI(old_payload_pred)); // pred
+        // Update linked list
+        if(old_next_blk != free_root){
+            put(payload_pointer, PtI(NULL)); // pred
+            put((char*)payload_pointer + 8, PtI(free_root)); // succ
+            put(free_root, PtI(payload_pointer)); // pred
+            put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+            if(old_payload_succ != NULL){ 
+                put(old_payload_succ, PtI(old_payload_pred)); // pred
+            }
+        }else{
+            put(payload_pointer, PtI(NULL)); // pred
+            put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
+            if(old_payload_succ != NULL){ 
+                put(old_payload_succ, PtI(old_payload_pred)); // pred
+            }
         }
 
         // Update the free root
@@ -647,7 +657,7 @@ size_t place(void* payload_pointer, size_t block_size){
                 put(next_blk(payload_pointer), PtI(NULL)); // pred
                 put(next_blk(payload_pointer) + 8, PtI(old_payload_succ)); // succ
                 if(old_payload_succ != NULL){
-                put(old_payload_succ, PtI(next_blk(payload_pointer))); // succ
+                    put(old_payload_succ, PtI(next_blk(payload_pointer))); // succ
                 }
             }
              

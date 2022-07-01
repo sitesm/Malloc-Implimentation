@@ -69,6 +69,10 @@ static size_t align(size_t x){
  */
 bool mm_init(void){
 
+    // Please tell me this is why it was bugging
+    // Reset free_root to null because traces are ran twicee
+    free_root = NULL;
+
     // Initial allocate of 8 words
     char *mem_brk = mem_sbrk(32);
 

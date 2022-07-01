@@ -244,7 +244,7 @@ bool mm_checkheap(int lineno)
         succ = ItP(get(succ + 8));
     }
 
-    gbd_printf("Heap is consistent");
+    dbg_printf("Heap is consistent");
 #endif /* DEBUG */
     return true;
 }
@@ -360,7 +360,7 @@ void* coalesce(void *payload_pointer){
             // Its never possibly for a newly freed block to be the free root
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(free_root)); // succ
-            put(free_root, PtI(payload_pointer); // pred       
+            put(free_root, PtI(payload_pointer)); // pred       
         }else{ // i.e the first allocate_page()
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(NULL)); // pred
@@ -387,9 +387,9 @@ void* coalesce(void *payload_pointer){
         put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(free_root)); // succ
         put(free_root, PtI(payload_pointer)); // pred
-        put((char*)old_payload_pred + 8, old_payload_succ);
+        put((char*)old_payload_pred + 8, PtI(old_payload_succ));
         if(old_payload_succ != NULL){ 
-            put(old_payload_succ, PtI(old_payload_pred); // pred
+            put(old_payload_succ, PtI(old_payload_pred)); // pred
         }
 
         // Update the free root
@@ -414,9 +414,9 @@ void* coalesce(void *payload_pointer){
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(free_root)); // succ
             put(free_root, PtI(payload_pointer)); // pred
-            put((char*)old_payload_pred + 8, old_payload_succ);
+            put((char*)old_payload_pred + 8, PtI(old_payload_succ));
             if(old_payload_succ != NULL){ 
-                put(old_payload_succ, PtI(old_payload_pred); // pred
+                put(old_payload_succ, PtI(old_payload_pred)); // pred
             }
         }
 
@@ -459,7 +459,7 @@ void* coalesce(void *payload_pointer){
             
             else if(old_payload_succ_right == payload_pointer){
                 put((char*)old_payload_pred_right + 8, PtI(old_payload_succ));// succ
-                if(old_paylaod_succ != NULL){
+                if(old_payload_succ != NULL){
                     put(old_payload_succ, PtI(old_payload_pred_right));// succ
                 } 
             }
@@ -476,7 +476,7 @@ void* coalesce(void *payload_pointer){
                 }  
 
                 put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                if(old_paylaod_succ_right != NULL){
+                if(old_payload_succ_right != NULL){
                     put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
                 }
             }else{ // first pred is old_payload_pred_right
@@ -512,7 +512,7 @@ void* coalesce(void *payload_pointer){
 
                     put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
                     if(old_payload_succ != NULL){
-                        put((char*)old_payload_succ + 8, PtI(old_payload_succ_right);
+                        put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
                     }
      
                 }else{
@@ -524,7 +524,7 @@ void* coalesce(void *payload_pointer){
 
                     put((char*)old_payload_pred + 8, PtI(old_payload_succ));
                     if(old_payload_succ != NULL){
-                        put((char*)old_payload_pred + 8, PtI(old_payload_succ);
+                        put((char*)old_payload_pred + 8, PtI(old_payload_succ));
                     }
                 }
             }
@@ -538,14 +538,14 @@ void* coalesce(void *payload_pointer){
                 // Update linked list
                 put(payload_pointer, PtI(NULL)); // pred
                 put((char*)payload_pointer + 8, PtI(old_payload_succ_right)); // pred
-                if(old_paylaod_succ_next != NULL){
+                if(old_payload_succ_next != NULL){
                     put(old_payload_succ_right, PtI(payload_pointer)); // pred
                 }
             }
             
             else{ // succ(FR) != right-adjacent free block
 
-                if(Itp(get((char*)old_payload_succ+8)) == right_free_block){
+                if(ItP(get((char*)old_payload_succ+8)) == right_free_block){
                     
                     // Update
                     // Dont reeally need to do this bc it already point to it,
@@ -556,7 +556,7 @@ void* coalesce(void *payload_pointer){
 
                     put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
                     if(old_payload_succ_right != NULL){
-                        put((char*)old_payload_succ_right + 8, PtI(old_payload_succ);
+                        put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
                     }
      
                 }else{
@@ -567,8 +567,8 @@ void* coalesce(void *payload_pointer){
                     put(old_payload_succ, PtI(payload_pointer));
 
                     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
-                    if(old_payload_succ_rigt != NULL){
-                        put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right);
+                    if(old_payload_succ_right != NULL){
+                        put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
                     }
                 }
             }
@@ -639,9 +639,9 @@ size_t place(void* payload_pointer, size_t block_size){
                 put(next_blk(payload_pointer), PtI(NULL)); // pred
                 put(next_blk(payload_pointer) + 8, PtI(free_root)); // succ
                 put(free_root, PtI(next_blk(payload_pointer))); // pred
-                put((char*)old_payload_pred + 8, old_payload_succ);
+                put((char*)old_payload_pred + 8, old_payload_succ));
                 if(old_payload_succ != NULL){ 
-                    put(old_payload_succ, PtI(old_payload_pred); // pred
+                    put(old_payload_succ, PtI(old_payload_pred)); // pred
                 }
             }else{ // Payload pointer is the free root
                 put(next_blk(payload_pointer), PtI(NULL)); // pred

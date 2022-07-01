@@ -165,7 +165,7 @@ void free(void* payload_pointer)
         put(GFA(payload_pointer), pack(size, 0));
 
         // Edge case: the block you are trying to free was just allocated at TOH
-        if((char*)payload_pointer + size == TOH){
+        if((char*)payload_pointer + size == TOH && !get_alloc(GHA(TOH))){
             TOH = coalesce(payload_pointer);
         }else{
             coalesce(payload_pointer); 
@@ -452,7 +452,7 @@ void* coalesce(void *payload_pointer){
         old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
         
 
-        if(payload_pointer != free_root && next_blk(payload_pointer) != free_root) {
+        if(payload_pointer != free_root && right_free_block != free_root) {
 
             // Update linked list
             put(payload_pointer, PtI(NULL)); // pred
@@ -477,7 +477,7 @@ void* coalesce(void *payload_pointer){
             else{
                 // Find which predeseccor address comes first
                 void* first_pred = find_first(old_payload_pred, old_payload_pred_right);
-                
+
                 // Update in the correect order of predeseccor to retain LIFO order
                 if(first_pred == old_payload_pred){
                     // Update

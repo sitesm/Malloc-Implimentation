@@ -441,12 +441,11 @@ void* coalesce(void *payload_pointer){
         old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
         old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
         
-        // Update curreent blocks pred/succ
-        put(payload_pointer, PtI(NULL)); // pred
 
         if(payload_pointer != free_root && next_blk(payload_pointer) != free_root) {
 
             // Update linked list
+            put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(free_root));// succ
             put(free_root, PtI(payload_pointer)); // pred   
 
@@ -464,10 +463,11 @@ void* coalesce(void *payload_pointer){
                     put(old_payload_succ, PtI(old_payload_pred_right));// succ
                 } 
             }
-            
+        
             // Find which predeseccor address comes first
             void* first_pred = find_first(old_payload_pred, old_payload_pred_right);
-            
+
+            // Update in the correect order of predeseccor to retain LIFO order
             if(first_pred == old_payload_pred){
                 // Update
                 put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
@@ -476,24 +476,100 @@ void* coalesce(void *payload_pointer){
                 }  
 
                 put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+                if(old_paylaod_succ_right != NULL){
+                    put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
+                }
+            }else{ // first pred is old_payload_pred_right
+                // Update
+                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
                 if(old_paylaod_succ != NULL){
+                    put(old_payload_succ, PtI(old_payload_pred));// succ
+                }  
+
+                put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
+                if(old_paylaod_succ_right != NULL){
                     put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
                 }
             }
+        }
 
-        }else if(next_blk(payload_pointer) == free_root){
+        if(right_free_block == free_root){    
+
+            // Check if the free root point to the other left-adjacent free block
             if(old_payload_succ_right == payload_pointer){
-                put((char*)payload_pointer + 8, PtI(old_payload_succ));
-                put(old_payload_succ, PtI(payload_pointer));
-            }else{
-                put((char*)payload_pointer + 8, PtI(old_payload_succ_right));// succ
-                put(old_payload_succ_right, PtI(payload_pointer));// succ
+                // Update linked list
+                put(payload_pointer, PtI(NULL)); // pred
             }
-        }else if(payload_pointer == free_root){
-            if(old_payload_succ == next_free_block){
-                put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
-                if(old_payload_succ_right != NULL){
+            
+            else{ // succ(FR) != left-adjacent free block
+
+                if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){
+                    
+                    // Update
+                    put(payload_pointer, PtI(NULL)); // pred
+                    put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
                     put(old_payload_succ_right, PtI(payload_pointer));
+
+                    put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
+                    if(old_payload_succ != NULL){
+                        put((char*)old_payload_succ + 8, PtI(old_payload_succ_right);
+                    }
+     
+                }else{
+
+                    // Update
+                    put(payload_pointer, PtI(NULL)); // pred
+                    put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
+                    put(old_payload_succ_right, PtI(payload_pointer));
+
+                    put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+                    if(old_payload_succ != NULL){
+                        put((char*)old_payload_pred + 8, PtI(old_payload_succ);
+                    }
+                }
+            }
+        }
+        
+        // Left-adjacent free block is the free root
+        else if(payload_pointer == free_root){
+
+            // Check if the free root point to the other right-adjacent free block
+            if(old_payload_succ == right_free_block){
+                // Update linked list
+                put(payload_pointer, PtI(NULL)); // pred
+                put((char*)payload_pointer + 8, PtI(old_payload_succ_right)); // pred
+                if(old_paylaod_succ_next != NULL){
+                    put(old_payload_succ_right, PtI(payload_pointer)); // pred
+                }
+            }
+            
+            else{ // succ(FR) != right-adjacent free block
+
+                if(Itp(get((char*)old_payload_succ+8)) == right_free_block){
+                    
+                    // Update
+                    // Dont reeally need to do this bc it already point to it,
+                    // but do it for consistencys sake
+                    put(payload_pointer, PtI(NULL)); // pred
+                    put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
+                    put(old_payload_succ, PtI(payload_pointer));
+
+                    put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
+                    if(old_payload_succ_right != NULL){
+                        put((char*)old_payload_succ_right + 8, PtI(old_payload_succ);
+                    }
+     
+                }else{
+
+                    // Update
+                    put(payload_pointer, PtI(NULL)); // pred
+                    put((char*)payload_pointer + 8, PtI(old_payload_succ));
+                    put(old_payload_succ, PtI(payload_pointer));
+
+                    put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
+                    if(old_payload_succ_rigt != NULL){
+                        put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right);
+                    }
                 }
             }
         }

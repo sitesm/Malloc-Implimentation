@@ -471,7 +471,7 @@ void* coalesce(void *payload_pointer){
             if(first_pred == old_payload_pred){
                 // Update
                 put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-                if(old_paylaod_succ != NULL){
+                if(old_payload_succ != NULL){
                     put(old_payload_succ, PtI(old_payload_pred));// succ
                 }  
 
@@ -487,7 +487,7 @@ void* coalesce(void *payload_pointer){
                 }  
 
                 put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-                if(old_paylaod_succ_right != NULL){
+                if(old_payload_succ_right != NULL){
                     put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
                 }
             }
@@ -538,7 +538,7 @@ void* coalesce(void *payload_pointer){
                 // Update linked list
                 put(payload_pointer, PtI(NULL)); // pred
                 put((char*)payload_pointer + 8, PtI(old_payload_succ_right)); // pred
-                if(old_payload_succ_next != NULL){
+                if(old_payload_succ_right != NULL){
                     put(old_payload_succ_right, PtI(payload_pointer)); // pred
                 }
             }
@@ -639,7 +639,7 @@ size_t place(void* payload_pointer, size_t block_size){
                 put(next_blk(payload_pointer), PtI(NULL)); // pred
                 put(next_blk(payload_pointer) + 8, PtI(free_root)); // succ
                 put(free_root, PtI(next_blk(payload_pointer))); // pred
-                put((char*)old_payload_pred + 8, old_payload_succ));
+                put((char*)old_payload_pred + 8, PtI(old_payload_succ));
                 if(old_payload_succ != NULL){ 
                     put(old_payload_succ, PtI(old_payload_pred)); // pred
                 }

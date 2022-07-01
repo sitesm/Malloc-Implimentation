@@ -482,7 +482,7 @@ void* coalesce(void *payload_pointer){
             }else{ // first pred is old_payload_pred_right
                 // Update
                 put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                if(old_paylaod_succ != NULL){
+                if(old_payload_succ != NULL){
                     put(old_payload_succ, PtI(old_payload_pred));// succ
                 }  
 

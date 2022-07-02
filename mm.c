@@ -854,7 +854,7 @@ void* find_first(void* addr1, void* addr2){
     while(succ != NULL){
         
         if(!in_heap(succ)){
-            printf("%p not in heap, pointed to by %p, pointed to by %p", succ, pred, ItP(get(pred));
+            printf("%p not in heap, pointed to by %p, pointed to by %p", succ, pred, ItP(get(pred)));
             char ch;
             scanf("%c", &ch);
         }

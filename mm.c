@@ -497,6 +497,7 @@ void* coalesce(void *payload_pointer){
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(old_payload_pred)); // pred
             }
+            mm_checkheap(__LINE__);
         }
 
         // Update the free root

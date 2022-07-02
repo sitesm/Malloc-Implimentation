@@ -29,7 +29,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
-//  #define DEBUG
+ #define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -683,13 +683,10 @@ void* coalesce(void *payload_pointer){
                     put(old_payload_succ, PtI(payload_pointer));
 
                     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
-                    if(old_payload_succ_right != NULL){
-                        put((char*)old_payload_pred_right, PtI(old_payload_succ_right));
-                    }
 
-                    // if(old_payload_succ_right != NULL){
-                    //     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
-                    // }
+                    if(old_payload_succ_right != NULL){
+                        put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
+                    }
                 }
             }
         }

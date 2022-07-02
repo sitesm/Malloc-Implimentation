@@ -467,7 +467,7 @@ void* coalesce(void *payload_pointer){
     // prev allocated, next not allocated
     else if(prev_block && !next_block){
 
-        if(next_blk(payload_pointer) == (void*)0x7efff7bdba20) {
+        if(ItP(get(next_blk(payload_pointer))) == (void*)0x7efff7bdba20) {
             char c;
             printf("%p points to error line: \n", payload_pointer);
             scanf("%c", &c);

@@ -503,8 +503,6 @@ void* coalesce(void *payload_pointer){
         }else{
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
-
-            // Possible bug???
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(payload_pointer)); // pred
             }
@@ -763,6 +761,8 @@ size_t place(void* payload_pointer, size_t block_size){
         // Update free root
         free_root = next_blk(payload_pointer);
 
+        coalesce(free_root);
+        
         mm_checkheap(__LINE__);
         
         return block_size;

@@ -266,12 +266,12 @@ bool mm_checkheap(int lineno)
 
         // Check to make sure pointers are in the heap
         if(in_heap(succ) == false){
-            dbg_printf("Check heap: address %p is not in the heap", succ);
+            dbg_printf("Check heap: address %p is not in the heap\n", succ);
         }
 
         // Check each free block is actualy freed
         if(get_alloc(GHA(succ)) != 0){
-            dbg_printf("Check heap: address %p is currently allocated", succ);
+            dbg_printf("Check heap: address %p is currently allocated\n", succ);
             return false;
         }
 
@@ -280,7 +280,7 @@ bool mm_checkheap(int lineno)
         succ = ItP(get(succ + 8));
     }
 
-    dbg_printf("Heap is consistent");
+    dbg_printf("Heap is consistent\n");
 #endif /* DEBUG */
     return true;
 }
@@ -408,9 +408,9 @@ void* coalesce(void *payload_pointer){
    
         // Update the free root
         free_root = payload_pointer;
-        if(!mm_checkheap(__LINE__)){
-            while(true);
-        }
+        // if(!mm_checkheap(__LINE__)){
+        //     while(true);
+        // }
 
         return(payload_pointer);
     }
@@ -454,9 +454,9 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root = payload_pointer;
-        if(!mm_checkheap(__LINE__)){
-            while(true);
-        }
+        // if(!mm_checkheap(__LINE__)){
+        //     while(true);
+        // }
     }
 
     // prev not allocated, next allocated (allocate page)
@@ -485,9 +485,9 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root = payload_pointer;
-        if(!mm_checkheap(__LINE__)){
-            while(true);
-        }
+        // if(!mm_checkheap(__LINE__)){
+        //     while(true);
+        // }
     }
 
     // prev and next, not allocated
@@ -644,9 +644,9 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root = payload_pointer;
-        if(!mm_checkheap(__LINE__)){
-            while(true);
-        }
+        // if(!mm_checkheap(__LINE__)){
+        //     while(true);
+        // }
     }
 
     return(payload_pointer);

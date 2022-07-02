@@ -196,6 +196,7 @@ void free(void* payload_pointer)
 
         dbg_printf("----- After freeing:  ");
         mm_checkheap(__LINE__);
+        dbg_printf("\n");
 
         // Edge case: the block you are trying to free was just allocated at TOH
         if((char*)payload_pointer + size == TOH && !get_alloc(GHA(TOH))){

@@ -311,8 +311,8 @@ bool mm_checkheap(int lineno)
             dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(succ + 8)), succ, lineno);
         }
 
-        if(ItP(get(succ+8)) == 0x7efff7bdba20){
-            dbg_printf("%d points to 0x7efff7bdba20\n", succ, lineno);
+        if(ItP(get(succ+8)) == (void*)0x7efff7bdba20){
+            dbg_printf("%p points to 0x7efff7bdba20\n", succ, lineno);
 
             dbg_printf("Press any key to continue");
             scanf("%c", &cont);

@@ -844,20 +844,20 @@ void* ItP(size_t ptr_int){
 */
 void* find_first(void* addr1, void* addr2){
 
-    dbg_printf("Stepping into find_first: ");
-    mm_checkheap(__LINE__);
-    dbg_printf("\n");
+    // dbg_printf("Stepping into find_first: ");
+    // mm_checkheap(__LINE__);
+    // dbg_printf("\n");
 
     char* succ = free_root;
     char * pred = NULL;
 
     while(succ != NULL){
         
-        if(!in_heap(succ)){
-            printf("%p not in heap, pointed to by %p", succ, pred);
-            char ch;
-            scanf("%c", &ch);
-        }
+        // if(!in_heap(succ)){
+        //     printf("%p not in heap, pointed to by %p", succ, pred);
+        //     char ch;
+        //     scanf("%c", &ch);
+        // }
         if(succ == addr1){
             return addr1;
         }else if(succ == addr2){

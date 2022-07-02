@@ -590,33 +590,45 @@ void* coalesce(void *payload_pointer){
             }
 
             else{
-                // Find which predeseccor address comes first
-                void* first_pred = find_first(old_payload_pred, old_payload_pred_right);
+                
+                // Update
+                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+                if(old_payload_succ_right != NULL){
+                    put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
+                }  
 
-                // Update in the correect order of predeseccor to retain LIFO order
-                if(first_pred == old_payload_pred){
-                    // Update
-                    put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-                    if(old_payload_succ != NULL){
-                        put(old_payload_succ, PtI(old_payload_pred));// succ
-                    }  
-
-                    put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                    if(old_payload_succ_right != NULL){
-                        put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
-                    }
-                }else{ // first pred is old_payload_pred_right
-                    // Update
-                    put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                    if(old_payload_succ != NULL){
-                        put(old_payload_succ, PtI(old_payload_pred));// succ
-                    }  
-
-                    put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-                    if(old_payload_succ_right != NULL){
-                        put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
-                    }
+                put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
+                if(old_payload_succ != NULL){
+                    put(old_payload_succ, PtI(old_payload_pred));// succ
                 }
+
+                // // Find which predeseccor address comes first
+                // void* first_pred = find_first(old_payload_pred, old_payload_pred_right);
+
+                // // Update in the correect order of predeseccor to retain LIFO order
+                // if(first_pred == old_payload_pred){
+                //     // Update
+                //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
+                //     if(old_payload_succ != NULL){
+                //         put(old_payload_succ, PtI(old_payload_pred));// succ
+                //     }  
+
+                //     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+                //     if(old_payload_succ_right != NULL){
+                //         put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
+                //     }
+                // }else{ // first pred is old_payload_pred_right
+                //     // Update
+                //     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+                //     if(old_payload_succ != NULL){
+                //         put(old_payload_succ, PtI(old_payload_pred));// succ
+                //     }  
+
+                //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
+                //     if(old_payload_succ_right != NULL){
+                //         put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
+                //     }
+                // }
             }
         }
 

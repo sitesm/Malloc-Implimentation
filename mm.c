@@ -355,7 +355,7 @@ bool allocate_page(){
     // Update TOH 
     TOH = coalesce(payload_pointer);
 
-    dbg_printf("----- After allocating:  ")
+    dbg_printf("----- After allocating:  ");
     mm_checkheap(__LINE__);
 
     return true;

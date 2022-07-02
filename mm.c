@@ -285,8 +285,10 @@ bool mm_checkheap(int lineno)
     while(succ != NULL){
 
         // Check to make sure pointers are in the heap
-        if(in_heap(succ) == false){
-            dbg_printf("Check heap: address %p is not in the heap\n", succ);
+        if(!in_heap(succ)){
+            dbg_printf("free root is not in heap at line %d\n", lineno);
+        }else if(!in_heap(ItP(get(succ + 8))) && ItP(get(succ + 8)) != NULL ){
+            dbg_printf("free root + 8 is not in heap at line %d\n", lineno);
         }
 
         // Check each free block is actualy freed
@@ -331,6 +333,8 @@ bool allocate_page(){
     
     // Update TOH 
     TOH = coalesce(payload_pointer);
+
+    mm_checkheap(__LINE__);
 
     return true;
 }
@@ -428,15 +432,7 @@ void* coalesce(void *payload_pointer){
         // Update the free root
         free_root = payload_pointer;
 
-        if(!in_heap(free_root)){
-            dbg_printf("COALESCE(!!): free root is not in heap\n");
-        }else if(!in_heap(ItP(get(free_root + 8))) && ItP(get(free_root + 8)) != NULL ){
-            dbg_printf("COALESCE(!!): free root + 8 is not in heap\n");
-        }
-
-        // if(!mm_checkheap(__LINE__)){
-        //     while(true);
-        // }
+        mm_checkheap(__LINE__);
 
         return(payload_pointer);
     }
@@ -471,25 +467,12 @@ void* coalesce(void *payload_pointer){
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(payload_pointer)); // pred
             }
-
-            // What is used to be
-            // if(old_payload_succ != NULL){ 
-            //     put(old_payload_succ, PtI(payload_pointer_pred)); // pred
-            // }
         }
 
         // Update the free root
         free_root = payload_pointer;
 
-        if(!in_heap(free_root)){
-            dbg_printf("COALESCE(!!): free root is not in heap\n");
-        }else if(!in_heap(ItP(get(free_root + 8))) && ItP(get(free_root + 8)) != NULL ){
-            dbg_printf("COALESCE(!!): free root + 8 is not in heap\n");
-        }
-
-        // if(!mm_checkheap(__LINE__)){
-        //     while(true);
-        // }
+        mm_checkheap(__LINE__);
     }
 
     // prev not allocated, next allocated (allocate page)
@@ -519,15 +502,7 @@ void* coalesce(void *payload_pointer){
         // Update the free root
         free_root = payload_pointer;
 
-        if(!in_heap(free_root)){
-            dbg_printf("COALESCE(!!): free root is not in heap\n");
-        }else if(!in_heap(ItP(get(free_root + 8))) && ItP(get(free_root + 8)) != NULL ){
-            dbg_printf("COALESCE(!!): free root + 8 is not in heap\n");
-        }
-
-        // if(!mm_checkheap(__LINE__)){
-        //     while(true);
-        // }
+        mm_checkheap(__LINE__);
     }
 
     // prev and next, not allocated
@@ -685,15 +660,7 @@ void* coalesce(void *payload_pointer){
         // Update the free root
         free_root = payload_pointer;
 
-        if(!in_heap(free_root)){
-            dbg_printf("COALESCE(!!): free root is not in heap\n");
-        }else if(!in_heap(ItP(get(free_root + 8))) && ItP(get(free_root + 8)) != NULL ){
-            dbg_printf("COALESCE(!!): free root + 8 is not in heap\n");
-        }
-
-        // if(!mm_checkheap(__LINE__)){
-        //     while(true);
-        // }
+        mm_checkheap(__LINE__);
     }
 
     return(payload_pointer);
@@ -777,9 +744,7 @@ size_t place(void* payload_pointer, size_t block_size){
         // Update free root
         free_root = next_blk(payload_pointer);
 
-        if(!in_heap(free_root)){
-            dbg_printf("PLACE: free root is not in heap\n");
-        }
+        mm_checkheap(__LINE__);
         
         return block_size;
     }

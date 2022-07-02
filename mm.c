@@ -29,7 +29,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
- #define DEBUG
+//  #define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -849,15 +849,16 @@ void* find_first(void* addr1, void* addr2){
     // dbg_printf("\n");
 
     char* succ = free_root;
-    // char * pred = NULL;
+    char * pred = NULL;
 
     while(succ != NULL){
         
-        // if(!in_heap(succ)){
-        //     printf("%p not in heap, pointed to by %p", succ, pred);
-        //     char ch;
-        //     scanf("%c", &ch);
-        // }
+        if(!in_heap(succ)){
+            printf("%p not in heap, pointed to by %p, pointed to by %p", succ, pred, ItP(get(pred));
+            char ch;
+            scanf("%c", &ch);
+        }
+
         if(succ == addr1){
             return addr1;
         }else if(succ == addr2){
@@ -865,7 +866,7 @@ void* find_first(void* addr1, void* addr2){
         }
 
         // if succ is not one of the addresses, continue
-        // pred = succ;
+        pred = succ;
         succ = ItP(get(succ + 8));
     }
 

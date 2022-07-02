@@ -308,7 +308,7 @@ bool mm_checkheap(int lineno)
         succ = ItP(get(succ + 8));
     }
 
-    dbg_printf("Heap is consistent at line %d\n", lineno);
+    dbg_printf("Heap is consistent at line %d\n\n", lineno);
 #endif /* DEBUG */
     return true;
 }

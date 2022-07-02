@@ -749,6 +749,10 @@ size_t place(void* payload_pointer, size_t block_size){
 
         // Update free root
         free_root = next_blk(payload_pointer);
+
+        if(!in_heap(free_root)){
+            dbg_printf("PLACE: free root is not in heap\n");
+        }
         
         return block_size;
     }
@@ -800,7 +804,7 @@ void* ItP(size_t ptr_int){
 }
 
 /*
-* find_first: finds which address passed in comes first in thee linked list
+* find_first: finds which address passed in comes first in the free linked list
 */
 void* find_first(void* addr1, void* addr2){
     char* succ = free_root;

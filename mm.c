@@ -865,7 +865,7 @@ void* find_first(void* addr1, void* addr2){
         }
 
         // if succ is not one of the addresses, continue
-        pred = succ;
+        // pred = succ;
         succ = ItP(get(succ + 8));
     }
 

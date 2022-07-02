@@ -153,6 +153,7 @@ void* malloc(size_t size){
         }
 
         dbg_printf("----- Aafter mallocing:  ");
+        dbg_printf("----- Payload pointer : %p", payload_pointer);
         mm_checkheap(__LINE__);
 
         return payload_pointer;
@@ -515,6 +516,7 @@ void* coalesce(void *payload_pointer){
 
         // Update linked list
         if(payload_pointer != free_root){
+
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(free_root)); // succ
             put(free_root, PtI(payload_pointer)); // pred
@@ -522,6 +524,7 @@ void* coalesce(void *payload_pointer){
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(old_payload_pred)); // pred
             }
+
             mm_checkheap(__LINE__);
         }
 
@@ -548,7 +551,6 @@ void* coalesce(void *payload_pointer){
         old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
         old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
         
-
         if(payload_pointer != free_root && right_free_block != free_root) {
 
             // Update linked list
@@ -718,9 +720,9 @@ size_t place(void* payload_pointer, size_t block_size){
 
         if(payload_pointer != free_root){
             // Jump over fully allocated free block
-            put(old_payload_pred + 8, PtI(old_payload_succ)); // pred
+            put(old_payload_pred + 8, PtI(old_payload_succ)); // succ
             if(old_payload_succ != NULL){
-                put(old_payload_succ, PtI(old_payload_pred)); // succ      
+                put(old_payload_succ, PtI(old_payload_pred)); // pred      
             }
         }else{ // paylaod_pointer == free_root
             // Update free root

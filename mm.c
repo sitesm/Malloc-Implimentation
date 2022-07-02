@@ -294,9 +294,9 @@ bool mm_checkheap(int lineno)
 
         // Check to make sure pointers are in the heap
         if(!in_heap(succ)){
-            dbg_printf("free root is not in heap at line %d\n", lineno);
+            dbg_printf("free root (%p) is not in heap at line %d\n", succ, lineno);
         }else if(!in_heap(ItP(get(succ + 8))) && ItP(get(succ + 8)) != NULL ){
-            dbg_printf("free root + 8 is not in heap at line %d\n", lineno);
+            dbg_printf("free root + 8 (%p) is not in heap at line %d\n", ItP(get(succ + 8), lineno);
         }
 
         // Check each free block is actualy freed
@@ -418,7 +418,7 @@ char *next_blk(void* payload_pointer){
 void* coalesce(void *payload_pointer){
 
     dbg_printf("Stepping into coalesce:");
-    
+
     size_t prev_block = get_alloc(GFA(prev_blk(payload_pointer)));
     size_t next_block = get_alloc(GHA(next_blk(payload_pointer)));
     size_t block_size = get_size(GHA(payload_pointer));

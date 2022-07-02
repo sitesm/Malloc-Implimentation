@@ -428,6 +428,11 @@ void* coalesce(void *payload_pointer){
    
         // Update the free root
         free_root = payload_pointer;
+
+        if(!in_heap(free_root)){
+            dbg_printf("COALESCE(YY): free root is not in heap\n");
+        }
+
         // if(!mm_checkheap(__LINE__)){
         //     while(true);
         // }
@@ -474,6 +479,11 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root = payload_pointer;
+
+        if(!in_heap(free_root)){
+            dbg_printf("COALESCE(Y!): free root is not in heap\n");
+        }
+
         // if(!mm_checkheap(__LINE__)){
         //     while(true);
         // }
@@ -505,6 +515,11 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root = payload_pointer;
+
+        if(!in_heap(free_root)){
+            dbg_printf("COALESCE(!Y): free root is not in heap\n");
+        }
+
         // if(!mm_checkheap(__LINE__)){
         //     while(true);
         // }
@@ -664,6 +679,11 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root = payload_pointer;
+
+        if(!in_heap(free_root)){
+            dbg_printf("COALESCE(!!): free root is not in heap\n");
+        }
+
         // if(!mm_checkheap(__LINE__)){
         //     while(true);
         // }

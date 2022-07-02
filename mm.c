@@ -183,6 +183,7 @@ void* malloc(size_t size){
  */
 void free(void* payload_pointer)
 {    
+    dbg_printf("Stepping into free");
     // If PP != NULL && PP was allocated, free
     if(!(payload_pointer == NULL) && get_alloc(GHA(payload_pointer))){
         size_t size = get_size(GHA(payload_pointer));

@@ -684,8 +684,12 @@ void* coalesce(void *payload_pointer){
 
                     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
                     if(old_payload_succ_right != NULL){
-                        put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
+                        put((char*)old_payload_pred_right, PtI(old_payload_succ_right));
                     }
+
+                    // if(old_payload_succ_right != NULL){
+                    //     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
+                    // }
                 }
             }
         }

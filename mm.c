@@ -323,23 +323,23 @@ bool mm_checkheap(int lineno)
 
         // go to next free block
         pred = next_free;
-        next_free = ItP(get(next + 8));   
+        next_free = ItP(get(next_free + 8));   
     }
 
-    // Check allocated blocks
-    while(next_allocated != mem_heap_hi() + 1){
+    // // Check allocated blocks (not needed right now)
+    // while(next_allocated != mem_heap_hi() + 1){
 
-        // Get the next block
-        void* next_block = next_blk(next_allocated);
+    //     // Get the next block
+    //     void* next_block = next_blk(next_allocated);
 
-        if(get_alloc(GHA(next_block))){
-            if (char*)next_block - 8 < (next_allocated + get_size(GHA(next_allocated))){
-                dbg_printf("Overlapping allocated bytes");
-            }
-        }
+    //     if(get_alloc(GHA(next_block))){
+    //         if((char*)next_block - 8 < (next_allocated + get_size(GHA(next_allocated)))){
+    //             dbg_printf("Overlapping allocated bytes");
+    //         }
+    //     }
 
-        next_allocated = next_block;
-    }
+    //     next_allocated = next_block;
+    // }
 
     dbg_printf("Heap is consistent at line %d\n", lineno);
 #endif /* DEBUG */

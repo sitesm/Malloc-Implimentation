@@ -183,7 +183,7 @@ void* malloc(size_t size){
  */
 void free(void* payload_pointer)
 {    
-    dbg_printf("Stepping into free:\n");
+    dbg_printf("\nStepping into free:\n");
     dbg_printf("----- Before freeing: ");
     mm_checkheap(__LINE__);
 
@@ -308,7 +308,7 @@ bool mm_checkheap(int lineno)
         succ = ItP(get(succ + 8));
     }
 
-    dbg_printf("Heap is consistent at line %d\n\n", lineno);
+    dbg_printf("Heap is consistent at line %d\n", lineno);
 #endif /* DEBUG */
     return true;
 }

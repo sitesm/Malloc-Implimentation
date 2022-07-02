@@ -585,8 +585,7 @@ void* coalesce(void *payload_pointer){
                 } 
             }
 
-            else{
-                
+            else{  
                 // Update
                 put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
                 if(old_payload_succ_right != NULL){
@@ -610,8 +609,7 @@ void* coalesce(void *payload_pointer){
             
             else{ // succ(FR) != left-adjacent free block
 
-                if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){
-                    
+                if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){  
                     // Update
                     put(payload_pointer, PtI(NULL)); // pred
                     put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
@@ -619,11 +617,9 @@ void* coalesce(void *payload_pointer){
 
                     put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
                     if(old_payload_succ != NULL){
-                        put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
+                        put((char*)old_payload_succ, PtI(old_payload_succ_right));
                     }
-     
                 }else{
-
                     // Update
                     put(payload_pointer, PtI(NULL)); // pred
                     put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
@@ -631,9 +627,35 @@ void* coalesce(void *payload_pointer){
 
                     put((char*)old_payload_pred + 8, PtI(old_payload_succ));
                     if(old_payload_succ != NULL){
-                        put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+                        put((char*)old_payload_pred, PtI(old_payload_succ));
                     }
                 }
+
+                // OLD
+                // if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){
+                    
+                //     // Update
+                //     put(payload_pointer, PtI(NULL)); // pred
+                //     put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
+                //     put(old_payload_succ_right, PtI(payload_pointer));
+
+                //     put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
+                //     if(old_payload_succ != NULL){
+                //         put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
+                //     }
+     
+                // }else{
+
+                //     // Update
+                //     put(payload_pointer, PtI(NULL)); // pred
+                //     put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
+                //     put(old_payload_succ_right, PtI(payload_pointer));
+
+                //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+                //     if(old_payload_succ != NULL){
+                //         put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+                //     }
+                // }
             }
         }
         
@@ -652,22 +674,18 @@ void* coalesce(void *payload_pointer){
             
             else{ // succ(FR) != right-adjacent free block
 
-                if(ItP(get((char*)old_payload_succ+8)) == right_free_block){
-                    
+                if(ItP(get((char*)old_payload_succ+8)) == right_free_block){  
                     // Update
-                    // Dont reeally need to do this bc it already point to it,
-                    // but do it for consistencys sake
                     put(payload_pointer, PtI(NULL)); // pred
                     put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
                     put(old_payload_succ, PtI(payload_pointer));
 
                     put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
                     if(old_payload_succ_right != NULL){
-                        put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
+                        put((char*)old_payload_succ_right, PtI(old_payload_succ));
                     }
      
                 }else{
-
                     // Update
                     put(payload_pointer, PtI(NULL)); // pred
                     put((char*)payload_pointer + 8, PtI(old_payload_succ));
@@ -676,7 +694,7 @@ void* coalesce(void *payload_pointer){
                     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
 
                     if(old_payload_succ_right != NULL){
-                        put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
+                        put((char*)old_payload_succ_right, PtI(old_payload_pred_right));
                     }
                 }
             }

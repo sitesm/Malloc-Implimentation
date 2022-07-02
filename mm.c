@@ -303,7 +303,7 @@ bool mm_checkheap(int lineno)
     char* pred = NULL;
 
     // Vars for checking allocated blocks (first block)
-    char* next_allocated = (char*)0x7efff72e7020; 
+    // char* next_allocated = (char*)0x7efff72e7020; 
 
     // Checks the free list
     while(next_free != NULL){

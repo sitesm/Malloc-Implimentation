@@ -540,7 +540,7 @@ void* coalesce(void *payload_pointer){
 
         if(next_blk(payload_pointer) == (void*)0x7efff7bdba20 || prev_blk(payload_pointer) == (void*)0x7efff7bdba20) {
             char c;
-            printf("P/N block is error line: \n")
+            printf("P/N block is error line: \n");
             scanf("%c", &c);
         }     
 

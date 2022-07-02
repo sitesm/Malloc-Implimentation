@@ -849,7 +849,7 @@ void* find_first(void* addr1, void* addr2){
     // dbg_printf("\n");
 
     char* succ = free_root;
-    char * pred = NULL;
+    // char * pred = NULL;
 
     while(succ != NULL){
         

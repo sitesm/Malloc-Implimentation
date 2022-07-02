@@ -300,6 +300,7 @@ bool mm_checkheap(int lineno)
 
     // Set the initial free root
     char* succ = free_root;
+    char* pred = NULL;
 
     while(succ != NULL){
 
@@ -312,12 +313,14 @@ bool mm_checkheap(int lineno)
 
         // Check each free block is actualy freed
         if(get_alloc(GHA(succ)) != 0){
-            dbg_printf("Check heap: address %p is currently allocated and pointed to by %p\n", succ, ItP(get(succ)));
+            dbg_printf("Check heap: address %p is currently allocated and pointed to by %p\n", succ, pred);
             return false;
         }
 
         // go to next free block
+        pred = succ;
         succ = ItP(get(succ + 8));
+        
     }
 
     dbg_printf("Heap is consistent at line %d\n", lineno);

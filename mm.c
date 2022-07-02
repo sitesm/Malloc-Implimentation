@@ -311,7 +311,7 @@ bool mm_checkheap(int lineno)
         // }
 
         if(succ == (void*)0x7efff793b70){
-            dbg_printf("%p size is %d\n", succ, get_size(GHA(succ)));
+            dbg_printf("%p size is %d\n", succ, (int)get_size(GHA(succ)));
         }
 
         // Check to make sure pointers are in the heap

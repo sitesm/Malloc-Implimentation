@@ -194,7 +194,7 @@ void* malloc(size_t size){
 void free(void* payload_pointer)
 {    
     dbg_printf("\nStepping into free:\n");
-    dbg_printf("----- Freeing: %p", payload_pointer);
+    dbg_printf("----- Freeing: %p\n", payload_pointer);
     dbg_printf("----- Before freeing: ");
     mm_checkheap(__LINE__);
 

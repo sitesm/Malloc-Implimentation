@@ -298,7 +298,7 @@ bool mm_checkheap(int lineno)
 {
 #ifdef DEBUG
 
-    char cont;
+
     // Set the initial free root
     char* succ = free_root;
 

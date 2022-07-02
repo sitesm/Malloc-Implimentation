@@ -183,13 +183,16 @@ void* malloc(size_t size){
  */
 void free(void* payload_pointer)
 {    
-    dbg_printf("Stepping into free\n");
+    dbg_printf("Stepping into free:");
+
     // If PP != NULL && PP was allocated, free
     if(!(payload_pointer == NULL) && get_alloc(GHA(payload_pointer))){
         size_t size = get_size(GHA(payload_pointer));
 
         put(GHA(payload_pointer), pack(size, 0));
         put(GFA(payload_pointer), pack(size, 0));
+
+        mm_checkheap(__LINE__);
 
         // Edge case: the block you are trying to free was just allocated at TOH
         if((char*)payload_pointer + size == TOH && !get_alloc(GHA(TOH))){

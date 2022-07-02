@@ -152,8 +152,8 @@ void* malloc(size_t size){
             TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
         }
 
-        dbg_printf("----- Aafter mallocing:  ");
-        dbg_printf("----- Payload pointer : %p", payload_pointer);
+        dbg_printf("----- Aafter mallocing:  \n");
+        dbg_printf("----- Payload pointer : %p\n", payload_pointer);
         mm_checkheap(__LINE__);
 
         return payload_pointer;

@@ -57,7 +57,6 @@
 #define ALIGNMENT 16
 
 // Prototypes
-// Helper Functions
 static bool allocate_page(void);
 static size_t pack(size_t size, int alloc);
 static void *GHA(void *payload_pointer);
@@ -128,6 +127,10 @@ bool mm_init(void){
  */
 void* malloc(size_t size){
 
+    dbg_printf("\nStepping into malloc:\n");
+    dbg_printf("----- Before mallocing: ");
+    mm_checkheap(__LINE__);
+
     // Local payload_pointer
     char* payload_pointer;
     size_t allocated_size;
@@ -148,6 +151,9 @@ void* malloc(size_t size){
             // update 
             TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
         }
+
+        dbg_printf("----- Aafter mallocing:  ");
+        mm_checkheap(__LINE__);
 
         return payload_pointer;
     }
@@ -173,6 +179,9 @@ void* malloc(size_t size){
 
     // update 
     TOH = (allocated_size == block_size) ? (char*)tmp_pos : (char*)tmp_pos - block_size + allocated_size;
+
+    dbg_printf("----- Aafter mallocing:  ");
+    mm_checkheap(__LINE__);
 
     // return payload location 
     return (TOH - allocated_size);
@@ -319,6 +328,10 @@ bool mm_checkheap(int lineno)
 */
 bool allocate_page(){
 
+    dbg_printf("\nStepping into allocate_page:\n");
+    dbg_printf("----- Before allocating: ");
+    mm_checkheap(__LINE__);
+
     // 1 MiB
     size_t page_size = (size_t)pow(2,20);
     // size_t page_size = 4096;
@@ -342,6 +355,7 @@ bool allocate_page(){
     // Update TOH 
     TOH = coalesce(payload_pointer);
 
+    dbg_printf("----- After allocating:  ")
     mm_checkheap(__LINE__);
 
     return true;
@@ -684,6 +698,10 @@ void* coalesce(void *payload_pointer){
 */
 size_t place(void* payload_pointer, size_t block_size){
 
+    dbg_printf("\nStepping into place:\n");
+    dbg_printf("----- Before placing: ");
+    mm_checkheap(__LINE__);
+
     // Save old information
     size_t old_size = get_size(GHA(payload_pointer));
     size_t remainder = old_size - block_size;
@@ -757,6 +775,7 @@ size_t place(void* payload_pointer, size_t block_size){
         // Update free root
         free_root = next_blk(payload_pointer);
 
+        dbg_printf("----- After placing: ");
         mm_checkheap(__LINE__);
         
         return block_size;
@@ -767,6 +786,10 @@ size_t place(void* payload_pointer, size_t block_size){
 * find_fit: finds the first fit starting from the free_root
 */
 void* find_fit(size_t block_size){
+
+    dbg_printf("Stepping into find_fit: ");
+    mm_checkheap(__LINE__);
+    dbg_printf("\n");
 
     // Check to see if any blocks have been added to the free list yet
     if(free_root == NULL){
@@ -812,6 +835,11 @@ void* ItP(size_t ptr_int){
 * find_first: finds which address passed in comes first in the free linked list
 */
 void* find_first(void* addr1, void* addr2){
+
+    dbg_printf("Stepping into find_first: ");
+    mm_checkheap(__LINE__);
+    dbg_printf("\n");
+
     char* succ = free_root;
 
     while(succ != NULL){

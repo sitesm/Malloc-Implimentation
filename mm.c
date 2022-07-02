@@ -29,7 +29,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
- #define DEBUG
+//  #define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -298,7 +298,6 @@ bool mm_checkheap(int lineno)
 {
 #ifdef DEBUG
 
-
     // Set the initial free root
     char* succ = free_root;
 
@@ -537,7 +536,14 @@ void* coalesce(void *payload_pointer){
     }
 
     // prev and next, not allocated
-    else{      
+    else{
+
+        if(next_blk(payload_pointer) == (void*)0x7efff7bdba20 || prev_blk(payload_pointer) == (void*)0x7efff7bdba20) {
+            char c;
+            printf("P/N block is error line: \n")
+            scanf("%c", &c);
+        }     
+
         // Save old pred/succ of next_block
         void* old_payload_succ_right = ItP(get(next_blk(payload_pointer) + 8)); // succ
         void* old_payload_pred_right = ItP(get(next_blk(payload_pointer))); // pred

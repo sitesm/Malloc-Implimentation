@@ -301,15 +301,16 @@ bool mm_checkheap(int lineno)
     // Set the initial free root
     char* succ = free_root;
     char* pred = NULL;
+    bool first = true;
 
     while(succ != NULL){
 
-        // if(ItP(get(succ + 8)) == (void*)0x7efff7930b70 && get_size(GHA((void*)0x7efff7930b70)) == 1){
-        //     dbg_printf("Problem stemming from %p at line %d", succ, lineno);
-        //     char ch;
-        //     scanf("%c", &ch);
-        // }
+        if(!first && succ == free_root){
+            dbg_printf("Infinite Loop");
+        }
 
+        first = false;
+        
         if(succ == (void*)0x7efff793b70){
             dbg_printf("%p size is %d\n", succ, (int)get_size(GHA(succ)));
         }

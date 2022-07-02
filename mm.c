@@ -437,7 +437,11 @@ void* coalesce(void *payload_pointer){
         }else{
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
-            put((char*)old_payload_succ, PtI(payload_pointer)); // succ
+
+            // Possible bug???
+            if(old_payload_succ != NULL){ 
+                put(old_payload_succ, PtI(payload_pointer)); // pred
+            }
         }
 
         // Update the free root

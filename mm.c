@@ -416,6 +416,8 @@ char *next_blk(void* payload_pointer){
 * coalesce: merges adjacent free blocks, returns the payload pointer
 */
 void* coalesce(void *payload_pointer){
+
+    dbg_printf("Stepping into coalesce:")
     size_t prev_block = get_alloc(GFA(prev_blk(payload_pointer)));
     size_t next_block = get_alloc(GHA(next_blk(payload_pointer)));
     size_t block_size = get_size(GHA(payload_pointer));
@@ -672,6 +674,7 @@ void* coalesce(void *payload_pointer){
         mm_checkheap(__LINE__);
     }
 
+    dbg_printf("\n");
     return(payload_pointer);
 }
 

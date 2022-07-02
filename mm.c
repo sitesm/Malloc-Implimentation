@@ -304,10 +304,14 @@ bool mm_checkheap(int lineno)
 
     while(succ != NULL){
 
-        if(ItP(get(succ + 8)) == (void*)0x7efff7930b70 && get_size(GHA((void*)0x7efff7930b70)) == 1){
-            dbg_printf("Problem stemming from %p at line %d", succ, lineno);
-            char ch;
-            scanf("%c", &ch);
+        // if(ItP(get(succ + 8)) == (void*)0x7efff7930b70 && get_size(GHA((void*)0x7efff7930b70)) == 1){
+        //     dbg_printf("Problem stemming from %p at line %d", succ, lineno);
+        //     char ch;
+        //     scanf("%c", &ch);
+        // }
+
+        if(succ == (void*)0x7efff793b70){
+            dbg_printf("%p size is %d", succ, get_size(GHA(succ)));
         }
 
         // Check to make sure pointers are in the heap

@@ -430,7 +430,7 @@ void* coalesce(void *payload_pointer){
 
         if(!in_heap(free_root)){
             dbg_printf("COALESCE(!!): free root is not in heap\n");
-        }else if(!in_heap(ItP(get(free_root + 8)))){
+        }else if(!in_heap(ItP(get(free_root + 8))) && ItP(get(free_root + 8)) != NULL ){
             dbg_printf("COALESCE(!!): free root + 8 is not in heap\n");
         }
 
@@ -483,7 +483,7 @@ void* coalesce(void *payload_pointer){
 
         if(!in_heap(free_root)){
             dbg_printf("COALESCE(!!): free root is not in heap\n");
-        }else if(!in_heap(ItP(get(free_root + 8)))){
+        }else if(!in_heap(ItP(get(free_root + 8))) && ItP(get(free_root + 8)) != NULL ){
             dbg_printf("COALESCE(!!): free root + 8 is not in heap\n");
         }
 
@@ -521,7 +521,7 @@ void* coalesce(void *payload_pointer){
 
         if(!in_heap(free_root)){
             dbg_printf("COALESCE(!!): free root is not in heap\n");
-        }else if(!in_heap(ItP(get(free_root + 8)))){
+        }else if(!in_heap(ItP(get(free_root + 8))) && ItP(get(free_root + 8)) != NULL ){
             dbg_printf("COALESCE(!!): free root + 8 is not in heap\n");
         }
 
@@ -687,7 +687,7 @@ void* coalesce(void *payload_pointer){
 
         if(!in_heap(free_root)){
             dbg_printf("COALESCE(!!): free root is not in heap\n");
-        }else if(!in_heap(ItP(get(free_root + 8)))){
+        }else if(!in_heap(ItP(get(free_root + 8))) && ItP(get(free_root + 8)) != NULL ){
             dbg_printf("COALESCE(!!): free root + 8 is not in heap\n");
         }
 

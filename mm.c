@@ -297,7 +297,7 @@ static bool aligned(const void* p)
 bool mm_checkheap(int lineno)
 {
 #ifdef DEBUG
-
+    dbg_printf("Checking Heap...");
     // Vars for checking free list 
     char* next_free = free_root;
     char* pred = NULL;

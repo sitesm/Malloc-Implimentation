@@ -306,8 +306,10 @@ bool mm_checkheap(int lineno)
         if(!in_heap(succ)){
             dbg_printf("free root (%p) is not in heap at line %d\n", succ, lineno);
         }else if(!in_heap(ItP(get(succ + 8))) && ItP(get(succ + 8)) != NULL ){
-            dbg_printf("free root + 8 (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(succ + 8)), succ, lineno);
-        }
+            dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(succ + 8)), succ, lineno);
+        }else if(!in_heap(ItP(get(succ))) && ItP(get(succ + 8)) != NULL){
+            dbg_printf("pred(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(succ)), succ, lineno);
+        }   
 
         // Check each free block is actualy freed
         if(get_alloc(GHA(succ)) != 0){

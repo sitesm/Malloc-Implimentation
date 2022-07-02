@@ -505,6 +505,12 @@ void* coalesce(void *payload_pointer){
     // prev not allocated, next allocated (allocate page)
     else if(!prev_block && next_block){
 
+        if(next_blk(payload_pointer) == (void*)0x7efff7bdba20 || prev_blk(payload_pointer) == (void*)0x7efff7bdba20) {
+            char c;
+            printf("P/N block is error line: \n");
+            scanf("%c", &c);
+        }  
+        
         // Update block information
         block_size += get_size(GHA(prev_blk(payload_pointer)));
         put(GFA(payload_pointer), pack(block_size,0));
@@ -536,13 +542,7 @@ void* coalesce(void *payload_pointer){
     }
 
     // prev and next, not allocated
-    else{
-
-        if(next_blk(payload_pointer) == (void*)0x7efff7bdba20 || prev_blk(payload_pointer) == (void*)0x7efff7bdba20) {
-            char c;
-            printf("P/N block is error line: \n");
-            scanf("%c", &c);
-        }     
+    else{   
 
         // Save old pred/succ of next_block
         void* old_payload_succ_right = ItP(get(next_blk(payload_pointer) + 8)); // succ

@@ -304,6 +304,12 @@ bool mm_checkheap(int lineno)
 
     while(succ != NULL){
 
+        if(ItP(get(succ + 8)) == (void*)0x7efff7930b70 && get_size(GHA((void*)0x7efff7930b70)) == 1){
+            dbg_printf("Problem stemming from %p at line %d", succ, lineno);
+            char ch;
+            scanf("%c", &ch);
+        }
+
         // Check to make sure pointers are in the heap
         if(!in_heap(succ)){
             dbg_printf("free root (%p) is not in heap at line %d\n", succ, lineno);

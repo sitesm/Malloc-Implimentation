@@ -316,9 +316,6 @@ bool mm_checkheap(int lineno)
 
             dbg_printf("Press any key to continue");
             scanf("%c", &cont);
-            if(cont){
-                continue;
-            }
         }
         // else if(!in_heap(ItP(get(succ))) && ItP(get(succ + 8)) != NULL){
         //     dbg_printf("pred(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(succ)), succ, lineno);

@@ -56,6 +56,26 @@
 /* What is the correct alignment?*/
 #define ALIGNMENT 16
 
+// Prototypes
+// Helper Functions
+static bool allocate_page(void);
+static size_t pack(size_t size, int alloc);
+static void *GHA(void *payload_pointer);
+static void *GFA(void *payload_pointer);
+static size_t get(void *addr);
+static size_t get_size(void *addr);
+static int get_alloc(void *addr);
+static void put(void* adddr, size_t val);
+static char *prev_blk(void* payload_pointer);
+static char *next_blk(void* payload_pointer);
+static void* coalesce(void *payload_pointer);
+static size_t place(void* payload_pointer, size_t block_size);
+static void* find_fit(size_t block_size);
+static void put_pointer(void* addr, void* pointer);
+static size_t PtI(void* pointer);
+static void* ItP(size_t ptr_int);
+static void* find_first(void* addr1, void* addr2);
+
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
 char *free_root = NULL; // The root of the the free list (points to payload pointer; pred is always NULL)
 static char *TOH = NULL; // next free payload pointer of the unallocated heap area

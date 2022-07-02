@@ -298,40 +298,47 @@ bool mm_checkheap(int lineno)
 {
 #ifdef DEBUG
 
-    // Set the initial free root
-    char* succ = free_root;
+    // Vars for checking free list 
+    char* next_free = free_root;
     char* pred = NULL;
-    bool first = true;
 
-    while(succ != NULL){
+    // Vars for checking allocated blocks (first block)
+    char* next_allocated = (char*)0x7efff72e7020; 
 
-        if(!first && succ == free_root){
-            dbg_printf("Infinite Loop");
-        }
+    // Checks the free list
+    while(next_free != NULL){
 
-        first = false;
-        
-        if(succ == (void*)0x7efff793b70){
-            dbg_printf("%p size is %d\n", succ, (int)get_size(GHA(succ)));
-        }
-
-        // Check to make sure pointers are in the heap
-        if(!in_heap(succ)){
-            dbg_printf("free root (%p) is not in heap at line %d\n", succ, lineno);
-        }else if(!in_heap(ItP(get(succ + 8))) && ItP(get(succ + 8)) != NULL ){
-            dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(succ + 8)), succ, lineno);
+        // Check free list
+        if(!in_heap(next_free)){
+            dbg_printf("free root (%p) is not in heap at line %d\n", next_free, lineno);
+        }else if(!in_heap(ItP(get(next_free + 8))) && ItP(get(next_free + 8)) != NULL ){
+            dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(next_free + 8)), next_free, lineno);
         }
 
         // Check each free block is actualy freed
-        if(get_alloc(GHA(succ)) != 0){
-            dbg_printf("Check heap: address %p is currently allocated and pointed to by %p\n", succ, pred);
+        if(get_alloc(GHA(next_free)) != 0){
+            dbg_printf("Check heap: address %p is currently allocated and pointed to by %p\n", next_free, pred);
             return false;
         }
 
         // go to next free block
-        pred = succ;
-        succ = ItP(get(succ + 8));
-        
+        pred = next_free;
+        next_free = ItP(get(next + 8));   
+    }
+
+    // Check allocated blocks
+    while(next_allocated != mem_heap_hi()){
+
+        // Get the next block
+        void* next_block = next_blk(next_allocated);
+
+        if(get_alloc(GHA(next_block))){
+            if (char*)next_block - 8 < (next_allocated + get_size(GHA(next_allocated))){
+                dbg_printf("Overlapping allocated bytes");
+            }
+        }
+
+
     }
 
     dbg_printf("Heap is consistent at line %d\n", lineno);
@@ -343,10 +350,6 @@ bool mm_checkheap(int lineno)
 * Allocates a page and coalesces to set TOH to the first unused payload pointer of allocated memory
 */
 bool allocate_page(){
-
-    dbg_printf("\nStepping into allocate_page:\n");
-    dbg_printf("----- Before allocating: ");
-    mm_checkheap(__LINE__);
 
     // 1 MiB
     size_t page_size = (size_t)pow(2,20);
@@ -370,9 +373,6 @@ bool allocate_page(){
     
     // Update TOH 
     TOH = coalesce(payload_pointer);
-
-    dbg_printf("----- After allocating:  ");
-    mm_checkheap(__LINE__);
 
     return true;
 }
@@ -539,8 +539,6 @@ void* coalesce(void *payload_pointer){
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(old_payload_pred)); // pred
             }
-
-            mm_checkheap(__LINE__);
         }
 
         // Update the free root
@@ -601,34 +599,6 @@ void* coalesce(void *payload_pointer){
                 if(old_payload_succ != NULL){
                     put(old_payload_succ, PtI(old_payload_pred));// succ
                 }
-
-                // // Find which predeseccor address comes first
-                // void* first_pred = find_first(old_payload_pred, old_payload_pred_right);
-
-                // // Update in the correect order of predeseccor to retain LIFO order
-                // if(first_pred == old_payload_pred){
-                //     // Update
-                //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-                //     if(old_payload_succ != NULL){
-                //         put(old_payload_succ, PtI(old_payload_pred));// succ
-                //     }  
-
-                //     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                //     if(old_payload_succ_right != NULL){
-                //         put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
-                //     }
-                // }else{ // first pred is old_payload_pred_right
-                //     // Update
-                //     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                //     if(old_payload_succ != NULL){
-                //         put(old_payload_succ, PtI(old_payload_pred));// succ
-                //     }  
-
-                //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-                //     if(old_payload_succ_right != NULL){
-                //         put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
-                //     }
-                // }
             }
         }
 
@@ -719,9 +689,7 @@ void* coalesce(void *payload_pointer){
 
         mm_checkheap(__LINE__);
     }
-    mm_checkheap(__LINE__);
 
-    dbg_printf("\n");
     return(payload_pointer);
 }
 
@@ -731,8 +699,6 @@ void* coalesce(void *payload_pointer){
 size_t place(void* payload_pointer, size_t block_size){
 
     dbg_printf("\nStepping into place:\n");
-    dbg_printf("----- Before placing: ");
-    mm_checkheap(__LINE__);
 
     // Save old information
     size_t old_size = get_size(GHA(payload_pointer));
@@ -771,16 +737,6 @@ size_t place(void* payload_pointer, size_t block_size){
         put(GHA(next_blk(payload_pointer)), pack(remainder, 0)); 
         put(GFA(next_blk(payload_pointer)), pack(remainder, 0));     
 
-        /* ADDRESS ORDER APPROACH
-        if this doesnt work, try this:
-        ---------------------------------
-        old_payload_pred + 8 -> next_blk(payload_pointer);
-        next_blk -> old_paylaod_pred;
-        next_blk(payload_pointer) + 8 -> old_paylaod_succ;
-        if(old_payload_succ != NULL):
-            old_payload_succ ->  next_blk(payload_pointer);
-        */
-
         if(free_root != NULL){ 
 
             if(payload_pointer != free_root){
@@ -807,7 +763,6 @@ size_t place(void* payload_pointer, size_t block_size){
         // Update free root
         free_root = next_blk(payload_pointer);
 
-        dbg_printf("----- After placing: ");
         mm_checkheap(__LINE__);
         
         return block_size;
@@ -818,10 +773,6 @@ size_t place(void* payload_pointer, size_t block_size){
 * find_fit: finds the first fit starting from the free_root
 */
 void* find_fit(size_t block_size){
-
-    dbg_printf("Stepping into find_fit: ");
-    mm_checkheap(__LINE__);
-    dbg_printf("\n");
 
     // Check to see if any blocks have been added to the free list yet
     if(free_root == NULL){
@@ -868,20 +819,11 @@ void* ItP(size_t ptr_int){
 */
 void* find_first(void* addr1, void* addr2){
 
-    // dbg_printf("Stepping into find_first: ");
-    // mm_checkheap(__LINE__);
-    // dbg_printf("\n");
 
     char* succ = free_root;
     // char * pred = NULL;
 
     while(succ != NULL){
-        
-        // if(!in_heap(succ)){
-        //     printf("%p not in heap, pointed to by %p, pointed to by %p", succ, pred, ItP(get(pred)));
-        //     char ch;
-        //     scanf("%c", &ch);
-        // }
 
         if(succ == addr1){
             return addr1;
@@ -890,7 +832,6 @@ void* find_first(void* addr1, void* addr2){
         }
 
         // if succ is not one of the addresses, continue
-        // pred = succ;
         succ = ItP(get(succ + 8));
     }
 

@@ -312,7 +312,7 @@ bool mm_checkheap(int lineno)
         }
 
         if(ItP(get(succ+8)) == (void*)0x7efff7bdba20){
-            dbg_printf("%p points to 0x7efff7bdba20\n", succ, lineno);
+            dbg_printf("%p points to 0x7efff7bdba20 at line %d\n", succ, lineno);
 
             dbg_printf("Press any key to continue");
             scanf("%c", &cont);

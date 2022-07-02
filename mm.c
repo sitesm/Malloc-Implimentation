@@ -327,7 +327,7 @@ bool mm_checkheap(int lineno)
     }
 
     // Check allocated blocks
-    while(next_allocated != mem_heap_hi()){
+    while(next_allocated != mem_heap_hi() + 1){
 
         // Get the next block
         void* next_block = next_blk(next_allocated);
@@ -338,7 +338,7 @@ bool mm_checkheap(int lineno)
             }
         }
 
-
+        next_allocated = next_block;
     }
 
     dbg_printf("Heap is consistent at line %d\n", lineno);

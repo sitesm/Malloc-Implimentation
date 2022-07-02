@@ -17,6 +17,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 
 #include "mm.h"
 #include "memlib.h"
@@ -259,18 +260,21 @@ bool mm_checkheap(int lineno)
 */
 bool allocate_page(){
 
-    // Allocate a page (4096 bytes);
-    void *payload_pointer = mem_sbrk(4096); // mem-brk returns a PP in this implimentation
+    // 1 MiB
+    size_t page_size = (size_t)pow(2,20);
+
+    // Allocate a page (page_size bytes);
+    void *payload_pointer = mem_sbrk(page_size); // mem-brk returns a PP in this implimentation
 
     // Initial allocation failed
     if(payload_pointer == NULL || *(int*)payload_pointer == -1){
-        printf("Page allocation failed: heap size %zu/%llu bytes\n", mem_heapsize() + 4096, MAX_HEAP_SIZE);
+        printf("Page allocation failed: heap size %zu/%llu bytes\n", mem_heapsize() + page_size, MAX_HEAP_SIZE);
         return false;
     }
 
     // Set footer and header blocks for allocated block
-    put(GHA(payload_pointer), pack(4096,0)); // Overwrites old epilogue header
-    put(GFA(payload_pointer), pack(4096,0));
+    put(GHA(payload_pointer), pack(page_size,0)); // Overwrites old epilogue header
+    put(GFA(payload_pointer), pack(page_size,0));
 
     // Set new epilogue header
     put(GHA(next_blk(payload_pointer)), pack(0,1));

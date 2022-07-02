@@ -29,7 +29,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
-//  #define DEBUG
+ #define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -276,7 +276,7 @@ bool mm_checkheap(int lineno)
         }
 
 
-        // if not big enough, go to next free block
+        // go to next free block
         succ = ItP(get(succ + 8));
     }
 
@@ -408,6 +408,9 @@ void* coalesce(void *payload_pointer){
    
         // Update the free root
         free_root = payload_pointer;
+        if(!mm_checkheap(__LINE__)){
+            while(true);
+        }
 
         return(payload_pointer);
     }
@@ -442,10 +445,18 @@ void* coalesce(void *payload_pointer){
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(payload_pointer)); // pred
             }
+
+            // What is used to be
+            // if(old_payload_succ != NULL){ 
+            //     put(old_payload_succ, PtI(payload_pointer_pred)); // pred
+            // }
         }
 
         // Update the free root
         free_root = payload_pointer;
+        if(!mm_checkheap(__LINE__)){
+            while(true);
+        }
     }
 
     // prev not allocated, next allocated (allocate page)
@@ -474,6 +485,9 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root = payload_pointer;
+        if(!mm_checkheap(__LINE__)){
+            while(true);
+        }
     }
 
     // prev and next, not allocated
@@ -630,6 +644,9 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root = payload_pointer;
+        if(!mm_checkheap(__LINE__)){
+            while(true);
+        }
     }
 
     return(payload_pointer);

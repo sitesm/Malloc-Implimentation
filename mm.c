@@ -312,7 +312,7 @@ bool mm_checkheap(int lineno)
 
         // Check each free block is actualy freed
         if(get_alloc(GHA(succ)) != 0){
-            dbg_printf("Check heap: address %p is currently allocated\n", succ);
+            dbg_printf("Check heap: address %p is currently allocated and pointed to by %p\n", succ, ItP(get(succ)));
             return false;
         }
 

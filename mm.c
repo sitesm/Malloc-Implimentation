@@ -194,6 +194,7 @@ void* malloc(size_t size){
 void free(void* payload_pointer)
 {    
     dbg_printf("\nStepping into free:\n");
+    dbg_printg("----- Freeing: %p", payload_pointer);
     dbg_printf("----- Before freeing: ");
     mm_checkheap(__LINE__);
 
@@ -297,6 +298,7 @@ bool mm_checkheap(int lineno)
 {
 #ifdef DEBUG
 
+    char cont;
     // Set the initial free root
     char* succ = free_root;
 
@@ -307,6 +309,16 @@ bool mm_checkheap(int lineno)
             dbg_printf("free root (%p) is not in heap at line %d\n", succ, lineno);
         }else if(!in_heap(ItP(get(succ + 8))) && ItP(get(succ + 8)) != NULL ){
             dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(succ + 8)), succ, lineno);
+        }
+
+        if(ItP(get(succ+8)) == 0x7efff7bdba20){
+            dbg_printf("%d points to 0x7efff7bdba20\n", succ, lineno);
+
+            dbg_printf("Press any key to continue");
+            scanf("%c", &cont);
+            if(cont){
+                continue;
+            }
         }
         // else if(!in_heap(ItP(get(succ))) && ItP(get(succ + 8)) != NULL){
         //     dbg_printf("pred(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(succ)), succ, lineno);
@@ -694,7 +706,7 @@ void* coalesce(void *payload_pointer){
         mm_checkheap(__LINE__);
     }
     mm_checkheap(__LINE__);
-    
+
     dbg_printf("\n");
     return(payload_pointer);
 }

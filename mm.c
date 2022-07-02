@@ -152,9 +152,9 @@ void* malloc(size_t size){
             TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
         }
 
-        dbg_printf("----- Aafter mallocing:  \n");
-        dbg_printf("----- Payload pointer : %p\n", payload_pointer);
+        dbg_printf("----- Aafter mallocing: ");
         mm_checkheap(__LINE__);
+        dbg_printf("----- Payload pointer : %p\n", payload_pointer);
 
         return payload_pointer;
     }
@@ -693,7 +693,8 @@ void* coalesce(void *payload_pointer){
 
         mm_checkheap(__LINE__);
     }
-
+    mm_checkheap(__LINE__);
+    
     dbg_printf("\n");
     return(payload_pointer);
 }

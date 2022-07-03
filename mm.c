@@ -332,10 +332,10 @@ bool mm_checkheap(int lineno)
             dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(next_free + 8)), next_free, lineno);
         }
 
-        // Headers and footers match 
-        if(get(GHA(next_blk)) != get(GFA(next_blk))){
-            dbg_printf("Header and footer of payload pointer %p do not match", next_blk);
-        }
+        // // Headers and footers match 
+        // if(get(GHA(next_blk)) != get(GFA(next_blk))){
+        //     dbg_printf("Header and footer of payload pointer %p do not match", next_blk);
+        // }
 
         // // Contiguious memory escaped coalescing
         // if(!get_alloc(GHA(prev_blk(next_free)))){

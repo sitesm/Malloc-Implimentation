@@ -5,11 +5,31 @@
  * SID: mjs7938
  * Date: 06/15/2022
  *
- * NOTE TO STUDENTS: Replace this header comment with your own header
- * comment that gives a high level description of your solution.
- * Also, read malloclab.pdf carefully and in its entirety before beginning.
- *
+*                                       MALLOC DESIGN DESCRIPTION
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ * In this first implimentation, I decided to create a LIFO explicit free list memory allocator.
+ * I decided to go this route so that I could understand the basics of making an explicit free
+ * list before I move forward and change to a segregated free list to increase memory utilazation.
+ * 
+ * In Malloc, the free list is always searched for a suitable block before adding the block to the top
+ * of the heap. When searching, this allocator uses a first fit system.
+ * 
+ * I decided to coalesce the free blocks during calls to free. This way, all free blocks are at the 
+ * largest size possible before any attempt is made to allocate to them.
+ * 
+ * Realloc uses the implimentation of malloc to first create a new memory region, then memcopy the memory 
+ * from the old block to the new block, depending on its size.
+ * 
+ * When no free block is found and the allocator must aquire more memory from the OS, it does so in a page 
+ * granularity of 1 MiB. In the final submission, this value will change based on maximal throughput/memory util
+ * 
+ * Placing blocks in a free block is done through the place function. This function allocatees a block at the given
+ * address. In place, it check to see if the remainder is smaller than the minimum block size (32 bytes); if so, it 
+ * allocates the whole free block, otherwise it splices the block and places the unused bytes at the begining of the 
+ * free list.
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=
  */
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +49,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
-//  #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -76,7 +96,7 @@ static void* ItP(size_t ptr_int);
 static void* find_first(void* addr1, void* addr2);
 
 /* Global Variables: Only allowed 128 bytes, pointers are 8 bytes each */
-char *free_root = NULL; // The root of the the free list (points to payload pointer; pred is always NULL)
+char *free_root = NULL; // The root of the the free list (points to payload pointer; INVARIANT: pred is always NULL)
 static char *TOH = NULL; // next free payload pointer of the unallocated heap area
 
 /* rounds up to the nearest multiple of ALIGNMENT */
@@ -195,7 +215,6 @@ void free(void* payload_pointer)
 {    
     dbg_printf("\nStepping into free:\n");
     dbg_printf("----- Freeing: %p\n", payload_pointer);
-    dbg_printf("----- Before freeing: ");
     mm_checkheap(__LINE__);
 
     // If PP != NULL && PP was allocated, free
@@ -205,9 +224,6 @@ void free(void* payload_pointer)
         put(GHA(payload_pointer), pack(size, 0));
         put(GFA(payload_pointer), pack(size, 0));
 
-        dbg_printf("----- After freeing:  ");
-        mm_checkheap(__LINE__);
-        dbg_printf("\n");
 
         // Edge case: the block you are trying to free was just allocated at TOH
         if((char*)payload_pointer + size == TOH && !get_alloc(GHA(TOH))){
@@ -314,6 +330,18 @@ bool mm_checkheap(int lineno)
             dbg_printf("free root (%p) is not in heap at line %d\n", next_free, lineno);
         }else if(!in_heap(ItP(get(next_free + 8))) && ItP(get(next_free + 8)) != NULL ){
             dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(next_free + 8)), next_free, lineno);
+        }
+
+        // Headers and footers match 
+        if(get(GHA(next_blk)) != get(GFA(next_blk))){
+            dbg_printf("Header and footer of payload pointer %p do not match", next_blk);
+        }
+
+        // Contiguious memory escaped coalescing
+        if(!get_alloc(GHA(prev_blk(next_free)))){
+            dbg_printf("Previous block at %p is free: Contigious memory", prev_blk(next_block));
+        }else if(!get_alloc(GHA(next_blk(next_free)))){
+            dbg_printf("Next block at %p is free: Contigious memory", next_blk(next_block));
         }
 
         // Check each free block is actualy freed

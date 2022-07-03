@@ -29,7 +29,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
- #define DEBUG
+//  #define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -640,25 +640,20 @@ void* coalesce(void *payload_pointer){
                 }
 
                 // OLD
-                // if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){
-                    
+                // if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){ 
                 //     // Update
                 //     put(payload_pointer, PtI(NULL)); // pred
                 //     put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
                 //     put(old_payload_succ_right, PtI(payload_pointer));
-
                 //     put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
                 //     if(old_payload_succ != NULL){
                 //         put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
                 //     }
-     
                 // }else{
-
                 //     // Update
                 //     put(payload_pointer, PtI(NULL)); // pred
                 //     put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
                 //     put(old_payload_succ_right, PtI(payload_pointer));
-
                 //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));
                 //     if(old_payload_succ != NULL){
                 //         put((char*)old_payload_pred + 8, PtI(old_payload_succ));
@@ -682,7 +677,7 @@ void* coalesce(void *payload_pointer){
             
             else{ // succ(FR) != right-adjacent free block
 
-                if(ItP(get((char*)old_payload_succ+8)) == right_free_block){  
+                if(ItP(get((char*)old_payload_succ + 8)) == right_free_block){  
                     // Update
                     put(payload_pointer, PtI(NULL)); // pred
                     put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ

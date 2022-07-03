@@ -297,7 +297,8 @@ static bool aligned(const void* p)
 bool mm_checkheap(int lineno)
 {
 #ifdef DEBUG
-    dbg_printf("Checking Heap...");
+    dbg_printf("\nChecking Heap...\n");
+
     // Vars for checking free list 
     char* next_free = free_root;
     char* pred = NULL;
@@ -459,6 +460,8 @@ void* coalesce(void *payload_pointer){
 
     // prev and next, allocated 
     if(prev_block && next_block){
+
+        dbg_printf("Coalesce Block 1\n");
         // Update free list
         if(free_root != NULL){ 
             // Its never possibly for a newly freed block to be the free root
@@ -480,6 +483,8 @@ void* coalesce(void *payload_pointer){
 
     // prev allocated, next not allocated
     else if(prev_block && !next_block){
+
+        dbg_printf("Coalesce Block 2\n");
 
         // Save next blocks payload pointer's old successor and predeseccor
         old_payload_succ = ItP(get(next_blk(payload_pointer) + 8)); // succ
@@ -517,6 +522,8 @@ void* coalesce(void *payload_pointer){
     // prev not allocated, next allocated (allocate page)
     else if(!prev_block && next_block){  
 
+        dbg_printf("Coalesce Block 3\n");
+
         // Update block information
         block_size += get_size(GHA(prev_blk(payload_pointer)));
         put(GFA(payload_pointer), pack(block_size,0));
@@ -529,7 +536,6 @@ void* coalesce(void *payload_pointer){
 
         // Update linked list
         if(payload_pointer != free_root){
-
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(free_root)); // succ
             put(free_root, PtI(payload_pointer)); // pred
@@ -547,6 +553,8 @@ void* coalesce(void *payload_pointer){
 
     // prev and next, not allocated
     else{   
+
+        dbg_printf("Coalesce Block 4\n");
 
         // Save old pred/succ of next_block
         void* old_payload_succ_right = ItP(get(next_blk(payload_pointer) + 8)); // succ

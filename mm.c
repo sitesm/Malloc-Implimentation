@@ -339,9 +339,9 @@ bool mm_checkheap(int lineno)
 
         // Contiguious memory escaped coalescing
         if(!get_alloc(GHA(prev_blk(next_free)))){
-            dbg_printf("Previous block at %p is free: Contigious memory", prev_blk(next_block));
+            dbg_printf("Previous block at %p is free: Contigious memory", prev_blk(next_free));
         }else if(!get_alloc(GHA(next_blk(next_free)))){
-            dbg_printf("Next block at %p is free: Contigious memory", next_blk(next_block));
+            dbg_printf("Next block at %p is free: Contigious memory", next_blk(next_free));
         }
 
         // Check each free block is actualy freed

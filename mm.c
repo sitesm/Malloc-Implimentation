@@ -188,7 +188,7 @@ void* malloc(size_t size){
     void *tmp_pos = TOH + block_size; 
 
     // allocate page if tmp_pos exceeds the current heap size 
-    while(tmp_pos >= mem_heap_hi()){
+    while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
         if(!allocate_page()){
             printf("Page allocation failed during malloc");
             return NULL;
@@ -253,6 +253,7 @@ void* realloc(void* oldptr, size_t size)
         // NULL will be returned ?? is that correct?
     }
 
+    // Realloc and free
     if(get_alloc(GHA(oldptr))){
         size_t old_size = get_size(GHA(oldptr));
 
@@ -798,7 +799,7 @@ size_t place(void* payload_pointer, size_t block_size){
                 put(next_blk(payload_pointer), PtI(NULL)); // pred
                 put(next_blk(payload_pointer) + 8, PtI(old_payload_succ)); // succ
                 if(old_payload_succ != NULL){
-                    put(old_payload_succ, PtI(next_blk(payload_pointer))); // succ
+                    put(old_payload_succ, PtI(next_blk(payload_pointer))); // pred
                 }
             }
              

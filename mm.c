@@ -49,7 +49,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -257,9 +257,9 @@ void* realloc(void* oldptr, size_t size)
     if(get_alloc(GHA(oldptr))){
         size_t old_size = get_size(GHA(oldptr));
 
-        if(old_size > size){
+        if(old_size >= size){
             newptr = malloc(size);
-            memcpy(newptr, oldptr, old_size);
+            memcpy(newptr, oldptr, size);
         }else{
             newptr = malloc(size);
             memcpy(newptr, oldptr, old_size);

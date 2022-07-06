@@ -187,7 +187,7 @@ void* malloc(size_t size){
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
 
-    // allocate page if tmp_pos exceeds the current heap size 
+    // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
     while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
         if(!allocate_page()){
             printf("Page allocation failed during malloc");
@@ -602,10 +602,10 @@ void* coalesce(void *payload_pointer){
         
         if(payload_pointer != free_root && right_free_block != free_root) {
 
-            // Update linked list
+            // Update linked list after to preserve order for find_first
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(free_root));// succ
-            put(free_root, PtI(payload_pointer)); // pred   
+            put(free_root, PtI(payload_pointer)); // pred
 
             // Check if the 2 freed blocks point to each other
             if(old_payload_succ == right_free_block){
@@ -622,16 +622,18 @@ void* coalesce(void *payload_pointer){
                 } 
             }
 
-            else{  
-                // Update
-                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                if(old_payload_succ_right != NULL){
-                    put(old_payload_succ_right, PtI(old_payload_pred_right));// succ
-                }  
+            // Neither block points to the other
+            else{ 
 
+                // Update
                 put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
                 if(old_payload_succ != NULL){
-                    put(old_payload_succ, PtI(old_payload_pred));// succ
+                    put(old_payload_succ, PtI(old_payload_pred));// pred
+                }  
+
+                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+                if(old_payload_succ_right != NULL){
+                    put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
                 }
             }
         }
@@ -866,7 +868,6 @@ void* ItP(size_t ptr_int){
 * find_first: finds which address passed in comes first in the free linked list
 */
 void* find_first(void* addr1, void* addr2){
-
 
     char* succ = free_root;
     // char * pred = NULL;

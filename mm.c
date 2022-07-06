@@ -326,6 +326,12 @@ bool mm_checkheap(int lineno)
     // Checks the free list
     while(next_free != NULL){
 
+        // Check each free block is actualy freed
+        if(get_alloc(GHA(next_free)) != 0){
+            dbg_printf("Check heap: address %p is currently allocated and pointed to by %p\n", next_free, pred);
+            return false;
+        }
+
         // Check free list
         if(!in_heap(next_free)){
             dbg_printf("free root (%p) is not in heap at line %d\n", next_free, lineno);
@@ -337,19 +343,12 @@ bool mm_checkheap(int lineno)
         // if(get(GHA(next_blk)) != get(GFA(next_blk))){
         //     dbg_printf("Header and footer of payload pointer %p do not match", next_blk);
         // }
-
         // // Contiguious memory escaped coalescing
         // if(!get_alloc(GHA(prev_blk(next_free)))){
         //     dbg_printf("Previous block at %p is free: Contigious memory", prev_blk(next_free));
         // }else if(!get_alloc(GHA(next_blk(next_free)))){
         //     dbg_printf("Next block at %p is free: Contigious memory", next_blk(next_free));
         // }
-
-        // Check each free block is actualy freed
-        if(get_alloc(GHA(next_free)) != 0){
-            dbg_printf("Check heap: address %p is currently allocated and pointed to by %p\n", next_free, pred);
-            return false;
-        }
 
         // go to next free block
         pred = next_free;
@@ -358,16 +357,13 @@ bool mm_checkheap(int lineno)
 
     // // Check allocated blocks (not needed right now)
     // while(next_allocated != mem_heap_hi() + 1){
-
     //     // Get the next block
     //     void* next_block = next_blk(next_allocated);
-
     //     if(get_alloc(GHA(next_block))){
     //         if((char*)next_block - 8 < (next_allocated + get_size(GHA(next_allocated)))){
     //             dbg_printf("Overlapping allocated bytes");
     //         }
     //     }
-
     //     next_allocated = next_block;
     // }
 
@@ -624,7 +620,6 @@ void* coalesce(void *payload_pointer){
 
             // Neither block points to the other
             else{ 
-
                 // Update
                 put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
                 if(old_payload_succ != NULL){
@@ -648,37 +643,26 @@ void* coalesce(void *payload_pointer){
             
             else{ // succ(FR) != left-adjacent free block
 
-                if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){  
-                    // Update
-                    put(payload_pointer, PtI(NULL)); // pred
-                    put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
-                    put(old_payload_succ_right, PtI(payload_pointer));
-
-                    put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
-                    if(old_payload_succ != NULL){
-                        put((char*)old_payload_succ, PtI(old_payload_succ_right));
-                    }
-                }else{
-                    // Update
-                    put(payload_pointer, PtI(NULL)); // pred
-                    put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
-                    put(old_payload_succ_right, PtI(payload_pointer));
-
-                    put((char*)old_payload_pred + 8, PtI(old_payload_succ));
-                    if(old_payload_succ != NULL){
-                        put((char*)old_payload_pred, PtI(old_payload_succ));
-                    }
+                // Update
+                put(payload_pointer, PtI(NULL)); // pred
+                put(payload_pointer + 8, PtI(old_payload_succ_right)); // pred
+                if(old_payload_succ_right != NULL){
+                    put(old_payload_succ_right, PtI(payload_pointer));// pred
                 }
+  
+                put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
+                if(old_payload_succ != NULL){
+                    put(old_payload_succ, PtI(old_payload_pred));// pred
+                }  
 
-                // OLD
-                // if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){ 
+                // if(ItP(get((char*)old_payload_succ_right + 8)) == payload_pointer){  
                 //     // Update
                 //     put(payload_pointer, PtI(NULL)); // pred
                 //     put((char*)payload_pointer + 8, PtI(old_payload_succ_right));
                 //     put(old_payload_succ_right, PtI(payload_pointer));
                 //     put((char*)old_payload_succ_right + 8, PtI(old_payload_succ));
                 //     if(old_payload_succ != NULL){
-                //         put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
+                //         put((char*)old_payload_succ, PtI(old_payload_succ_right));
                 //     }
                 // }else{
                 //     // Update
@@ -687,7 +671,7 @@ void* coalesce(void *payload_pointer){
                 //     put(old_payload_succ_right, PtI(payload_pointer));
                 //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));
                 //     if(old_payload_succ != NULL){
-                //         put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+                //         put((char*)old_payload_pred, PtI(old_payload_succ));
                 //     }
                 // }
             }
@@ -706,31 +690,39 @@ void* coalesce(void *payload_pointer){
                 }
             }
             
-            else{ // succ(FR) != right-adjacent free block
+            else{  // succ(FR) != right-adjacent free block
 
-                if(ItP(get((char*)old_payload_succ + 8)) == right_free_block){  
-                    // Update
-                    put(payload_pointer, PtI(NULL)); // pred
-                    put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
-                    put(old_payload_succ, PtI(payload_pointer));
-
-                    put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
-                    if(old_payload_succ_right != NULL){
-                        put((char*)old_payload_succ_right, PtI(old_payload_succ));
-                    }
-     
-                }else{
-                    // Update
-                    put(payload_pointer, PtI(NULL)); // pred
-                    put((char*)payload_pointer + 8, PtI(old_payload_succ));
-                    put(old_payload_succ, PtI(payload_pointer));
-
-                    put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
-
-                    if(old_payload_succ_right != NULL){
-                        put((char*)old_payload_succ_right, PtI(old_payload_pred_right));
-                    }
+                // Update
+                put(payload_pointer, PtI(NULL)); // pred
+                put(payload_pointer + 8, PtI(old_payload_succ)); // pred
+                if(old_payload_succ != NULL){
+                    put(old_payload_succ, PtI(payload_pointer));// pred
                 }
+  
+                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+                if(old_payload_succ_right != NULL){
+                    put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
+                }  
+
+                // if(ItP(get((char*)old_payload_succ + 8)) == right_free_block){  
+                //     // Update
+                //     put(payload_pointer, PtI(NULL)); // pred
+                //     put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
+                //     put(old_payload_succ, PtI(payload_pointer));
+                //     put((char*)old_payload_succ + 8, PtI(old_payload_succ_right));
+                //     if(old_payload_succ_right != NULL){
+                //         put((char*)old_payload_succ_right, PtI(old_payload_succ));
+                //     }
+                // }else{
+                //     // Update
+                //     put(payload_pointer, PtI(NULL)); // pred
+                //     put((char*)payload_pointer + 8, PtI(old_payload_succ));
+                //     put(old_payload_succ, PtI(payload_pointer));
+                //     put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
+                //     if(old_payload_succ_right != NULL){
+                //         put((char*)old_payload_succ_right, PtI(old_payload_pred_right));
+                //     }
+                // }
             }
         }
 

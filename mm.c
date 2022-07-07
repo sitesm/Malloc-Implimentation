@@ -240,6 +240,7 @@ void* realloc(void* oldptr, size_t size)
 {    
     // Pointer to new location
     void* newptr = NULL;
+    size_t block_size = align(size+16);
 
     // "malloc"
     if(oldptr == NULL){
@@ -256,7 +257,7 @@ void* realloc(void* oldptr, size_t size)
     if(get_alloc(GHA(oldptr))){
         size_t old_size = get_size(GHA(oldptr));
 
-        if(old_size >= size){
+        if(old_size >= block_size){
             newptr = malloc(size);
             memcpy(newptr, oldptr, size);
         }else{

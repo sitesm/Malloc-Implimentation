@@ -255,6 +255,7 @@ void* realloc(void* oldptr, size_t size)
 
     // Realloc and free
     if(get_alloc(GHA(oldptr))){
+
         size_t old_size = get_size(GHA(oldptr));
 
         // Check for size difference
@@ -269,7 +270,7 @@ void* realloc(void* oldptr, size_t size)
             return oldptr;   
         }else{
             // Malloc and copy data
-            newptr = malloc(size);
+            newptr = malloc(block_size);
             memcpy(newptr, oldptr, old_size);
             free(oldptr);
         }

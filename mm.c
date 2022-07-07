@@ -241,6 +241,7 @@ void* realloc(void* oldptr, size_t size)
     // Pointer to new location
     void* newptr = NULL;
     size_t allocated_size;
+    size_t block_size = allign(size+16);
 
     // "malloc"
     if(oldptr == NULL){
@@ -257,12 +258,12 @@ void* realloc(void* oldptr, size_t size)
         size_t old_size = get_size(GHA(oldptr));
 
         // Check for size difference
-        if(old_size >= size){
+        if(old_size >= block_size){
             // If size is being shrunk, you can place it where it was originally with no memcopy
-            allocated_size = place(oldptr, size);
+            allocated_size = place(oldptr, block_size);
             if(oldptr == TOH){
                 // update 
-                TOH = (allocated_size == size) ? TOH + size : TOH + allocated_size;
+                TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
             } 
 
             return oldptr;   

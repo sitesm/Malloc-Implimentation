@@ -237,7 +237,41 @@ void free(void* payload_pointer)
  * realloc
  */
 void* realloc(void* oldptr, size_t size)
-{      
+{    
+    // Pointer to new location
+    void* newptr = NULL;
+
+    // "malloc"
+    if(oldptr == NULL){
+        newptr = malloc(size);
+    }
+
+    // "free"
+    if(size == 0){
+        free(oldptr);
+        // NULL will be returned ?? is that correct?
+    }
+
+    // Realloc and free
+    if(get_alloc(GHA(oldptr))){
+        size_t old_size = get_size(GHA(oldptr));
+
+        if(old_size >= size){
+            newptr = malloc(size);
+            memcpy(newptr, oldptr, size);
+        }else{
+            newptr = malloc(size);
+            memcpy(newptr, oldptr, old_size);
+        }
+
+        free(oldptr);
+        
+    }else{
+        return NULL;
+    }
+
+    return newptr; 
+    /* 
     // Pointer to new location
     void* newptr = NULL;
     // size_t allocated_size;
@@ -279,7 +313,8 @@ void* realloc(void* oldptr, size_t size)
         return NULL;
     }
 
-    return newptr;
+    return newptr;*/
+
 }
 
 /*

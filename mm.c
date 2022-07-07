@@ -5,7 +5,7 @@
  * SID: mjs7938
  * Date: 06/15/2022
  *
-*                                       MALLOC DESIGN DESCRIPTION
+ *                                       MALLOC DESIGN DESCRIPTION
  * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  * In this first implimentation, I decided to create a LIFO explicit free list memory allocator.
  * I decided to go this route so that I could understand the basics of making an explicit free
@@ -240,6 +240,7 @@ void* realloc(void* oldptr, size_t size)
 {      
     // Pointer to new location
     void* newptr = NULL;
+    size_t allocated_size;
 
     // "malloc"
     if(oldptr == NULL){
@@ -257,15 +258,21 @@ void* realloc(void* oldptr, size_t size)
 
         // Check for size difference
         if(old_size >= size){
-            newptr = malloc(size);
-            memcpy(newptr, oldptr, size);
+            // If size is being shrunk, you can place it where it was originally with no memcopy
+            allocated_size = place(oldptr, size);
+            if(oldptr == TOH){
+                // update 
+                TOH = (allocated_size == size) ? TOH + size : TOH + allocated_size;
+            } 
+
+            return oldptr;   
         }else{
+            // Malloc and copy data
             newptr = malloc(size);
             memcpy(newptr, oldptr, old_size);
+            free(oldptr);
         }
-
-        free(oldptr);
-    }else{
+    }else{ // Block not allocated
         return NULL;
     }
 
@@ -532,7 +539,7 @@ void* coalesce(void *payload_pointer){
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(old_payload_pred)); // pred
             }
-        }else{
+        }else{ 
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
             if(old_payload_succ != NULL){ 

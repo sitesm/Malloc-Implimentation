@@ -241,7 +241,7 @@ void* realloc(void* oldptr, size_t size)
     // Pointer to new location
     void* newptr = NULL;
     size_t allocated_size;
-    size_t block_size = allign(size+16);
+    size_t block_size = align(size+16);
 
     // "malloc"
     if(oldptr == NULL){

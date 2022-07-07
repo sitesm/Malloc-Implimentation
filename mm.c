@@ -260,17 +260,18 @@ void* realloc(void* oldptr, size_t size)
 
         // Check for size difference
         if(old_size >= block_size){
-            // If size is being shrunk, you can place it where it was originally with no memcopy
+
+            // If size is being shrunk, you can place it where it was originally with no memcpy
             allocated_size = place(oldptr, block_size);
-            if(oldptr == TOH){
-                // update 
-                TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
-            } 
+            // if(oldptr == TOH){
+            //     // update 
+            //     TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
+            // } 
 
             return oldptr;   
         }else{
             // Malloc and copy data
-            newptr = malloc(block_size);
+            newptr = malloc(size);
             memcpy(newptr, oldptr, old_size);
             free(oldptr);
         }

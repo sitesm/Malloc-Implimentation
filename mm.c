@@ -276,23 +276,23 @@ void* realloc(void* oldptr, size_t size)
             put(GHA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
             put(GFA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
 
+            // Add unused bytes to the begining of the free list
+            put(next_blk(oldptr), PtI(NULL)); // pred
+            put(next_blk(oldptr) + 8, PtI(free_root)); // succ
+            put(free_root, PtI(next_blk(oldptr))); // pred
+
+            // Update free root
+            free_root = next_blk(oldptr);
+
+            // Coalesce extra block
+            if(next_blk(next_blk(oldptr)) == TOH){
+                // update 
+                TOH = coalesce(next_blk(oldptr));
+            }else{
+                coalesce(next_blk(oldptr));
+            }
+
             free(next_blk(oldptr));
-
-            // // Add unused bytes to the begining of the free list
-            // put(next_blk(oldptr), PtI(NULL)); // pred
-            // put(next_blk(oldptr) + 8, PtI(free_root)); // succ
-            // put(free_root, PtI(next_blk(oldptr))); // pred
-
-            // // Update free root
-            // free_root = next_blk(oldptr);
-
-            // // Coalesce extra block
-            // if(next_blk(next_blk(oldptr)) == TOH){
-            //     // update 
-            //     TOH = coalesce(next_blk(oldptr));
-            // }else{
-            //     coalesce(next_blk(oldptr));
-            // }
 
             return oldptr;
         }

@@ -286,9 +286,9 @@ void* realloc(void* oldptr, size_t size)
             // Maybe coalesce here?
             if(next_blk(next_blk(oldptr)) == TOH){
                 // update 
-                TOH = coalesce(oldptr);
+                TOH = coalesce(next_blk(oldptr));
             }else{
-                coalesce(oldptr);
+                coalesce(next_blk(oldptr));
             }
 
             return oldptr;

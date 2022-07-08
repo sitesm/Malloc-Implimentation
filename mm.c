@@ -244,11 +244,13 @@ void* realloc(void* oldptr, size_t size)
     // "malloc"
     if(oldptr == NULL){
         newptr = malloc(size);
+        return newptr;
     }
 
     // "free"
     if(size == 0){
         free(oldptr);
+        return NULL;
     }
 
     // Realloc and free
@@ -266,7 +268,7 @@ void* realloc(void* oldptr, size_t size)
 
         // Realloc is shrunk, and the remaining bytes > minimum block size
         else if(remainder > 32){
-            // set the header and footer of the just the allocated block
+            // Set the header and footer of the just the allocated block
             put(GHA(oldptr), pack(block_size, 1));
             put(GFA(oldptr), pack(block_size, 1)); 
 
@@ -297,7 +299,7 @@ void* realloc(void* oldptr, size_t size)
         else{
             // Malloc and free
             newptr = malloc(size);
-            memcpy(newptr, oldptr, old_size - 16); // Sub 8 to not copy over footer
+            memcpy(newptr, oldptr, old_size - 16); // Sub 16 to not copy over header/footer
             free(oldptr);
 
             return newptr;
@@ -306,8 +308,6 @@ void* realloc(void* oldptr, size_t size)
     }else{
         return NULL;
     }
-
-    return newptr; 
 }
 
 /*

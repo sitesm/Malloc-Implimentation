@@ -562,10 +562,6 @@ void* coalesce(void *payload_pointer){
         put(GHA(payload_pointer), pack(block_size, 0));
         put(GFA(payload_pointer), pack(block_size, 0));
 
-        if(block_size > mem_heapsize()){
-            printf("Block is to large when coalescing: next_blk = %p", old_next_blk);
-        }
-
         // Update linked list
         if(old_next_blk != free_root){
             put(payload_pointer, PtI(NULL)); // pred

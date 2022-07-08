@@ -49,7 +49,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -375,16 +375,16 @@ bool mm_checkheap(int lineno)
             dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(next_free + 8)), next_free, lineno);
         }
 
-        // Headers and footers match 
-        if(get(GHA(next_blk)) != get(GFA(next_blk))){
-            dbg_printf("Header and footer of payload pointer %p do not match", next_blk);
-        }
-        // Contiguious memory escaped coalescing
-        if(!get_alloc(GHA(prev_blk(next_free)))){
-            dbg_printf("Previous block at %p is free: Contigious memory", prev_blk(next_free));
-        }else if(!get_alloc(GHA(next_blk(next_free)))){
-            dbg_printf("Next block at %p is free: Contigious memory", next_blk(next_free));
-        }
+        // // Headers and footers match 
+        // if(get(GHA(next_blk)) != get(GFA(next_blk))){
+        //     dbg_printf("Header and footer of payload pointer %p do not match", next_blk);
+        // }
+        // // Contiguious memory escaped coalescing
+        // if(!get_alloc(GHA(prev_blk(next_free)))){
+        //     dbg_printf("Previous block at %p is free: Contigious memory", prev_blk(next_free));
+        // }else if(!get_alloc(GHA(next_blk(next_free)))){
+        //     dbg_printf("Next block at %p is free: Contigious memory", next_blk(next_free));
+        // }
 
         // go to next free block
         pred = next_free;

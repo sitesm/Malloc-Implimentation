@@ -255,17 +255,36 @@ void* realloc(void* oldptr, size_t size)
     // Realloc and free
     if(get_alloc(GHA(oldptr))){
         size_t old_size = get_size(GHA(oldptr));
+        size_t remainder = old_size - block_size;
 
-        if(old_size >= block_size){
-            // If size is being shrunk, you can place it where it was originally with no memcpy
-            place(oldptr, block_size);
-            // if(oldptr == TOH){
-            //     // update 
-            //     TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
-            // } 
+        // Realloc will take up the whole block again, no extra bytes
+        if(remainder >= 0 && remainder <= 32 ){    
+            put(GHA(oldptr), pack(block_size, 1));
+            put(GFA(oldptr), pack(block_size, 1)); 
 
-            return oldptr;
-        }else{
+            // Maybe coalesce here?
+
+            return oldptr; 
+        }
+
+        // Realloc is shrunk, and the remaining bytes > minimum block size
+        else if(remainder > 32){
+            // set the header and footer of the just the allocated block
+            put(GHA(oldptr), pack(block_size, 1));
+            put(GFA(oldptr), pack(block_size, 1)); 
+
+            // Set header and footer for un-used bytes 
+            put(GHA(next_blk(oldptr)), pack(remainder, 0)); 
+            put(GFA(next_blk(oldptr)), pack(remainder, 0)); 
+
+            // Add unused bytes to the begining of the free list
+            put(next_blk(oldptr), PtI(NULL)); // pred
+            put(next_blk(oldptr) + 8, PtI(free_root)); // succ
+            put(free_root, PtI(next_blk(oldptr))); // pred
+        }
+
+        // Realloc grew, new block is needed
+        else{
             newptr = malloc(size);
             memcpy(newptr, oldptr, old_size);
             free(oldptr);
@@ -768,7 +787,7 @@ size_t place(void* payload_pointer, size_t block_size){
     void* old_payload_pred = ItP(get(payload_pointer));
 
     // If the remaining block is going to be smaller than the minimum block size
-    if(remainder <= 32){
+    if(remainder < 32){
         // set the header and footer of the whole allocated block
         put(GHA(payload_pointer), pack(old_size, 1));
         put(GFA(payload_pointer), pack(old_size, 1)); 

@@ -260,15 +260,15 @@ void* realloc(void* oldptr, size_t size)
 
         // Realloc will take up the whole block again, no extra bytes
         if(remainder >= 0 && remainder <= 32){    
-            put(GHA(oldptr), pack(block_size, 1));
-            put(GFA(oldptr), pack(block_size, 1)); 
+            put(GHA(oldptr), pack(old_size, 1));
+            put(GFA(oldptr), pack(old_size, 1)); 
 
             return oldptr; 
         }
 
         // Realloc is shrunk, and the remaining bytes > minimum block size
         else if(remainder > 32){
-            // Set the header and footer of the just the allocated block
+            // Set the header and footer of the newly the allocated block
             put(GHA(oldptr), pack(block_size, 1));
             put(GFA(oldptr), pack(block_size, 1)); 
 

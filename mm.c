@@ -274,8 +274,8 @@ void* realloc(void* oldptr, size_t size)
             put(GFA(oldptr), pack(block_size, 1)); 
 
             // Set header and footer for un-used bytes 
-            put(GHA(next_blk(oldptr)), pack(remainder, 0)); 
-            put(GFA(next_blk(oldptr)), pack(remainder, 0)); 
+            put(GHA(next_blk(oldptr)), pack((uint64_t)remainder, 0)); 
+            put(GFA(next_blk(oldptr)), pack((uint64_t)remainder, 0)); 
 
             // Add unused bytes to the begining of the free list
             put(next_blk(oldptr), PtI(NULL)); // pred

@@ -272,27 +272,24 @@ void* realloc(void* oldptr, size_t size)
             put(GFA(oldptr), pack(block_size, 1)); 
 
             // Set header and footer for un-used bytes 
-            put(GHA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
-            put(GFA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
+            put(GHA(next_blk(oldptr)), pack((size_t)remainder, 0)); 
+            put(GFA(next_blk(oldptr)), pack((size_t)remainder, 0)); 
 
             // Add unused bytes to the begining of the free list
-            // put(next_blk(oldptr), PtI(NULL)); // pred
-            // put(next_blk(oldptr) + 8, PtI(free_root)); // succ
-            // put(free_root, PtI(next_blk(oldptr))); // pred
+            put(next_blk(oldptr), PtI(NULL)); // pred
+            put(next_blk(oldptr) + 8, PtI(free_root)); // succ
+            put(free_root, PtI(next_blk(oldptr))); // pred
 
-            // Free to properly coalesce
-            free(next_blk(oldptr));
+            // Update free root
+            free_root = next_blk(oldptr);
 
-            // // // Update free root
-            // // free_root = next_blk(oldptr);
-
-            // // Maybe coalesce here?
-            // if(next_blk(free_root) == TOH){
-            //     // update 
-            //     TOH = coalesce(oldptr);
-            // }else{
-            //     coalesce(oldptr);
-            // }
+            // Maybe coalesce here?
+            if(next_blk(next_blk(oldptr)) == TOH){
+                // update 
+                TOH = coalesce(oldptr);
+            }else{
+                coalesce(oldptr);
+            }
 
             return oldptr;
         }

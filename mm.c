@@ -292,7 +292,7 @@ void* realloc(void* oldptr, size_t size)
                 coalesce(next_blk(oldptr));
             }
 
-            free(next_blk(oldptr));
+            // free(next_blk(oldptr));
 
             return oldptr;
         }

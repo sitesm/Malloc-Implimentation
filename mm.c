@@ -202,7 +202,6 @@ void* malloc(size_t size){
     mm_checkheap(__LINE__);
     dbg_printf("----- Payload pointer : %p\n", payload_pointer);
 
-
     // return payload location 
     return (TOH - allocated_size);
 }
@@ -276,14 +275,14 @@ void* realloc(void* oldptr, size_t size)
             put(GFA(next_blk(oldptr)), pack((size_t)remainder, 0)); 
 
             // Add unused bytes to the begining of the free list
-            put(next_blk(oldptr), PtI(NULL)); // pred
-            put(next_blk(oldptr) + 8, PtI(free_root)); // succ
-            put(free_root, PtI(next_blk(oldptr))); // pred
+            // put(next_blk(oldptr), PtI(NULL)); // pred
+            // put(next_blk(oldptr) + 8, PtI(free_root)); // succ
+            // put(free_root, PtI(next_blk(oldptr))); // pred
 
             // Update free root
-            free_root = next_blk(oldptr);
+            // free_root = next_blk(oldptr);
 
-            // Maybe coalesce here?
+            // Coalesce extra block
             if(next_blk(next_blk(oldptr)) == TOH){
                 // update 
                 TOH = coalesce(next_blk(oldptr));
@@ -296,6 +295,7 @@ void* realloc(void* oldptr, size_t size)
 
         // Realloc grew, new block is needed
         else{
+            // Malloc and free
             newptr = malloc(size);
             memcpy(newptr, oldptr, old_size);
             free(oldptr);

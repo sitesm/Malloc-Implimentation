@@ -255,7 +255,7 @@ void* realloc(void* oldptr, size_t size)
     // Realloc and free
     if(get_alloc(GHA(oldptr))){
         size_t old_size = get_size(GHA(oldptr));
-        int64_t remainder = old_size - block_size;
+        int64_t remainder = (int64_t)old_size - (int64_t)block_size;
 
         // Realloc will take up the whole block again, no extra bytes
         if(remainder >= 0 && remainder <= 32 ){    

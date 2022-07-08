@@ -250,7 +250,6 @@ void* realloc(void* oldptr, size_t size)
     // "free"
     if(size == 0){
         free(oldptr);
-        // NULL will be returned ?? is that correct?
     }
 
     // Realloc and free
@@ -271,8 +270,7 @@ void* realloc(void* oldptr, size_t size)
             memcpy(newptr, oldptr, old_size);
             free(oldptr);
         }
-
-        
+    
     }else{
         return NULL;
     }
@@ -770,7 +768,7 @@ size_t place(void* payload_pointer, size_t block_size){
     void* old_payload_pred = ItP(get(payload_pointer));
 
     // If the remaining block is going to be smaller than the minimum block size
-    if(remainder < 32){
+    if(remainder <= 32){
         // set the header and footer of the whole allocated block
         put(GHA(payload_pointer), pack(old_size, 1));
         put(GFA(payload_pointer), pack(old_size, 1)); 

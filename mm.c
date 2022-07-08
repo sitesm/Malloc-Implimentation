@@ -297,7 +297,7 @@ void* realloc(void* oldptr, size_t size)
         else{
             // Malloc and free
             newptr = malloc(size);
-            memcpy(newptr, oldptr + 8, old_size - 16); // Sub 8 to not copy over footer
+            memcpy(newptr, oldptr, old_size - 16); // Sub 8 to not copy over footer
             free(oldptr);
 
             return newptr;

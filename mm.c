@@ -258,11 +258,9 @@ void* realloc(void* oldptr, size_t size)
         int64_t remainder = (int64_t)old_size - (int64_t)block_size;
 
         // Realloc will take up the whole block again, no extra bytes
-        if(remainder >= 0 && remainder <= 32 ){    
+        if(remainder >= 0 && remainder <= 32){    
             put(GHA(oldptr), pack(block_size, 1));
             put(GFA(oldptr), pack(block_size, 1)); 
-
-            // Maybe coalesce here?
 
             return oldptr; 
         }
@@ -274,16 +272,24 @@ void* realloc(void* oldptr, size_t size)
             put(GFA(oldptr), pack(block_size, 1)); 
 
             // Set header and footer for un-used bytes 
-            put(GHA(next_blk(oldptr)), pack((uint64_t)remainder, 0)); 
-            put(GFA(next_blk(oldptr)), pack((uint64_t)remainder, 0)); 
+            put(GHA(next_blk(oldptr)), pack((size_t)remainder, 0)); 
+            put(GFA(next_blk(oldptr)), pack((size_t)remainder, 0)); 
 
             // Add unused bytes to the begining of the free list
             put(next_blk(oldptr), PtI(NULL)); // pred
             put(next_blk(oldptr) + 8, PtI(free_root)); // succ
             put(free_root, PtI(next_blk(oldptr))); // pred
 
-            // Update free root
-            free_root = next_blk(oldptr);
+            // // Update free root
+            // free_root = next_blk(oldptr);
+
+            // Maybe coalesce here?
+            if(next_blk(free_root) == TOH){
+                // update 
+                TOH = coalesce(oldptr);
+            }else{
+                coalesce(oldptr);
+            }
 
             return oldptr;
         }
@@ -302,50 +308,6 @@ void* realloc(void* oldptr, size_t size)
     }
 
     return newptr; 
-    /* 
-    // Pointer to new location
-    void* newptr = NULL;
-    // size_t allocated_size;
-    size_t block_size = align(size+16);
-
-    // "malloc"
-    if(oldptr == NULL){
-        newptr = malloc(size);
-    }
-
-    // "free"
-    if(size == 0){
-        free(oldptr);
-    }
-
-    // Realloc and free
-    if(get_alloc(GHA(oldptr))){
-
-        size_t old_size = get_size(GHA(oldptr));
-
-        // Check for size difference
-        if(old_size >= block_size){
-
-            // If size is being shrunk, you can place it where it was originally with no memcpy
-            place(oldptr, block_size);
-            // if(oldptr == TOH){
-            //     // update 
-            //     TOH = (allocated_size == block_size) ? TOH + block_size : TOH + allocated_size;
-            // } 
-
-            return oldptr;   
-        }else{
-            // Malloc and copy data
-            newptr = malloc(size);
-            memcpy(newptr, oldptr, old_size);
-            free(oldptr);
-        }
-    }else{ // Block not allocated
-        return NULL;
-    }
-
-    return newptr;*/
-
 }
 
 /*

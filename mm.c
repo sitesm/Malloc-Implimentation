@@ -290,7 +290,6 @@ void* realloc(void* oldptr, size_t size)
 
             return newptr;
         }
-    
     }else{
         return NULL;
     }

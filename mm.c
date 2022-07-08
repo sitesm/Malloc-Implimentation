@@ -281,6 +281,11 @@ void* realloc(void* oldptr, size_t size)
             put(next_blk(oldptr), PtI(NULL)); // pred
             put(next_blk(oldptr) + 8, PtI(free_root)); // succ
             put(free_root, PtI(next_blk(oldptr))); // pred
+
+            // Update free root
+            free_root = next_blk(oldptr);
+
+            return oldptr;
         }
 
         // Realloc grew, new block is needed
@@ -288,6 +293,8 @@ void* realloc(void* oldptr, size_t size)
             newptr = malloc(size);
             memcpy(newptr, oldptr, old_size);
             free(oldptr);
+
+            return newptr;
         }
     
     }else{

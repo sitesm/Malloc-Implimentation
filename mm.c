@@ -400,8 +400,7 @@ bool mm_checkheap(int lineno)
 bool allocate_page(){
 
     // 1 MiB
-    // size_t page_size = (size_t)pow(2,20);
-    size_t page_size = 65536;
+    size_t page_size = 32768;
 
     // Allocate a page (page_size bytes);
     void *payload_pointer = mem_sbrk(page_size); // mem-brk returns a PP in this implimentation

@@ -300,7 +300,7 @@ void* realloc(void* oldptr, size_t size)
         else{
             // Malloc and free
             newptr = malloc(size);
-            memcpy(newptr, oldptr, old_size); // Sub 16 to not copy over header/footer
+            memcpy(newptr, oldptr, old_size);
             free(oldptr);
 
             return newptr;

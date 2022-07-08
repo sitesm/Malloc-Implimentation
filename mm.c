@@ -273,24 +273,26 @@ void* realloc(void* oldptr, size_t size)
             put(GFA(oldptr), pack(block_size, 1)); 
 
             // Set header and footer for un-used bytes 
-            put(GHA(next_blk(oldptr)), pack((size_t)remainder, 0)); 
-            put(GFA(next_blk(oldptr)), pack((size_t)remainder, 0)); 
+            put(GHA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
+            put(GFA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
 
-            // Add unused bytes to the begining of the free list
-            put(next_blk(oldptr), PtI(NULL)); // pred
-            put(next_blk(oldptr) + 8, PtI(free_root)); // succ
-            put(free_root, PtI(next_blk(oldptr))); // pred
+            free(next_blk(oldptr));
 
-            // Update free root
-            free_root = next_blk(oldptr);
+            // // Add unused bytes to the begining of the free list
+            // put(next_blk(oldptr), PtI(NULL)); // pred
+            // put(next_blk(oldptr) + 8, PtI(free_root)); // succ
+            // put(free_root, PtI(next_blk(oldptr))); // pred
 
-            // Coalesce extra block
-            if(next_blk(next_blk(oldptr)) == TOH){
-                // update 
-                TOH = coalesce(next_blk(oldptr));
-            }else{
-                coalesce(next_blk(oldptr));
-            }
+            // // Update free root
+            // free_root = next_blk(oldptr);
+
+            // // Coalesce extra block
+            // if(next_blk(next_blk(oldptr)) == TOH){
+            //     // update 
+            //     TOH = coalesce(next_blk(oldptr));
+            // }else{
+            //     coalesce(next_blk(oldptr));
+            // }
 
             return oldptr;
         }
@@ -299,7 +301,7 @@ void* realloc(void* oldptr, size_t size)
         else{
             // Malloc and free
             newptr = malloc(size);
-            memcpy(newptr, oldptr, old_size - 16); // Sub 16 to not copy over header/footer
+            memcpy(newptr, oldptr, old_size); // Sub 16 to not copy over header/footer
             free(oldptr);
 
             return newptr;

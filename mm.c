@@ -900,6 +900,12 @@ void* find_fit(size_t block_size){
     // If the succ is null off the bat, go to the next list
     while(succ == NULL){
         idx++;
+
+        // If max index is surpassed
+        if(idx > 11){
+            return NULL;
+        }
+
         succ = free_root[idx];
     }
 
@@ -918,8 +924,13 @@ void* find_fit(size_t block_size){
 
         // End of free list, go to next list
         if(succ == NULL){
-            succ = free_root[idx + 1];
             idx++;
+            succ = free_root[idx];
+        }
+
+        // If max index is surpassed
+        if(idx > 11){
+            return NULL;
         }
     }
 

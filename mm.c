@@ -692,36 +692,119 @@ void* coalesce(void *payload_pointer){
         // It always updates the left block first, the the right block. NOTE: This may not be optimal
         //////////////////////////////////////////////////////////////////////////////////////////////
         
-        // Update left blocks free list
-        if(payload_pointer != free_root[lft_idx]){
-            // In the middle of the free list
-            put((char*)old_payload_pred + 8, PtI(old_payload_succ));
-            if(old_payload_succ != NULL){ 
-                put(old_payload_succ, PtI(old_payload_pred)); // pred
-            }
-        }else{
-            // Update free root
-            if(old_payload_succ != NULL){
-                put(old_payload_succ, PtI(NULL)); // pred
-            }
-            free_root[lft_idx] = old_payload_succ;
-        }
+        if(rgt_idx == lft_idx){
+            
+            /* Case 1: Right is free root */
+            if(free_root[rgt_idx] == payload_pointer){
+                // Right points to left
+                if(old_payload_succ_right == payload_pointer){
+                    // Update free root
+                    if(old_payload_succ != NULL){
+                        put(old_payload_succ, PtI(NULL)); // pred
+                    }
+                    free_root[rgt_idx] = old_payload_succ;
+                }else{
+                    // Update free root
+                    if(old_payload_succ_right != NULL){
+                        put(old_payload_succ_right, PtI(NULL)); // pred
+                    }
+                    free_root[rgt_idx] = old_payload_succ_right;
 
-        // Update right blocks free list
-        if(right_free_block != free_root[rgt_idx]){
-            // In the middle of the free list
-            put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
-            if(old_payload_succ_right != NULL){ 
-                put(old_payload_succ_right, PtI(old_payload_pred_right)); // pred
-            }
-        }else{
-            // Update free root
-            if(old_payload_succ_right != NULL){
-                put(old_payload_succ_right, PtI(NULL)); // pred
-            }
-            free_root[rgt_idx] = old_payload_succ_right;
-        }
+                    // Skip over left
+                    put(old_payload_pred + 8, PtI(old_payload_succ)); // succ
+                    if(old_payload_succ != NULL){
+                        put(old_payload_succ, PtI(old_payload_pred)); // pred      
+                    }
+                }
+                
+            /* Case 2: Left is free root */
+            }else if(free_root[lft_idx] == right_free_block){
 
+                // Left points to right
+                if(old_payload_succ == right_free_block){
+                    // Update free root
+                    if(old_payload_succ_right != NULL){
+                        put(old_payload_succ_right, PtI(NULL)); // pred
+                    }
+                    free_root[rgt_idx] = old_payload_succ_right;
+                }else{
+                    // Update free root
+                    if(old_payload_succ != NULL){
+                        put(old_payload_succ, PtI(NULL)); // pred
+                    }
+                    free_root[rgt_idx] = old_payload_succ;
+
+                    // Skip over right
+                    put(old_payload_pred_right + 8, PtI(old_payload_succ_right)); // succ
+                    if(old_payload_succ_right != NULL){
+                        put(old_payload_succ_right, PtI(old_payload_pred_right)); // pred      
+                    }
+                }
+
+            /* Case 3: No block is the free root */
+            }else{  
+                // Check if the left blocks successor is the right block
+                if(old_payload_succ == right_free_block){
+                    put((char*)old_payload_pred + 8, PtI(old_payload_succ_right));// succ
+                    if(old_payload_succ_right != NULL){
+                        put(old_payload_succ_right, PtI(old_payload_pred));// succ
+                    } 
+                }
+                // Check if the right blocks successor is the left block
+                else if(old_payload_succ_right == payload_pointer){
+                    put((char*)old_payload_pred_right + 8, PtI(old_payload_succ));// succ
+                    if(old_payload_succ != NULL){
+                        put(old_payload_succ, PtI(old_payload_pred_right));// succ
+                    } 
+                }
+                // Neither block points to the other
+                else{ 
+                    // Update left blocks pred/succ
+                    put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
+                    if(old_payload_succ != NULL){
+                        put(old_payload_succ, PtI(old_payload_pred));// pred
+                    }  
+                    // Update right blocks pred/succ
+                    put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+                    if(old_payload_succ_right != NULL){
+                        put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
+                    }
+                }
+            }
+
+        // The indexes are not the same
+        }else{
+            // Update left blocks free list
+            if(payload_pointer != free_root[lft_idx]){
+                // In the middle of the free list
+                put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+                if(old_payload_succ != NULL){ 
+                    put(old_payload_succ, PtI(old_payload_pred)); // pred
+                }
+            }else{
+                // Update free root
+                if(old_payload_succ != NULL){
+                    put(old_payload_succ, PtI(NULL)); // pred
+                }
+                free_root[lft_idx] = old_payload_succ;
+            }
+
+            // Update right blocks free list
+            if(right_free_block != free_root[rgt_idx]){
+                // In the middle of the free list
+                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
+                if(old_payload_succ_right != NULL){ 
+                    put(old_payload_succ_right, PtI(old_payload_pred_right)); // pred
+                }
+            }else{
+                // Update free root
+                if(old_payload_succ_right != NULL){
+                    put(old_payload_succ_right, PtI(NULL)); // pred
+                }
+                free_root[rgt_idx] = old_payload_succ_right;
+            }
+        }
+        
         // Add new larger block to the correct list
         put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(free_root[blk_idx]));// succ

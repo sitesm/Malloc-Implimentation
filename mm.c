@@ -5,7 +5,7 @@
  * SID: mjs7938
  * Date: 06/15/2022
  *
- *                                       MALLOC DESIGN DESCRIPTION
+ *                                        MALLOC DESIGN DESCRIPTION
  * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  * In this first implimentation, I decided to create a LIFO explicit free list memory allocator.
  * I decided to go this route so that I could understand the basics of making an explicit free
@@ -731,83 +731,6 @@ void* coalesce(void *payload_pointer){
 
         // Update the free root
         free_root[blk_idx] = payload_pointer;
-
-        // /* Case 1: Neither prev or next are the free roots of their*/
-        // if(payload_pointer != free_root[lft_idx] && right_free_block != free_root[rgt_idx]) {
-        //     // Check if the left blocks successor is the right block
-        //     if(old_payload_succ == right_free_block){
-        //         put((char*)old_payload_pred + 8, PtI(old_payload_succ_right));// succ
-        //         if(old_payload_succ_right != NULL){
-        //             put(old_payload_succ_right, PtI(old_payload_pred));// succ
-        //         } 
-        //     }
-        //     // Check if the right blocks successor is the left block
-        //     else if(old_payload_succ_right == payload_pointer){
-        //         put((char*)old_payload_pred_right + 8, PtI(old_payload_succ));// succ
-        //         if(old_payload_succ != NULL){
-        //             put(old_payload_succ, PtI(old_payload_pred_right));// succ
-        //         } 
-        //     }
-        //     // Neither block points to the other
-        //     else{ 
-        //         // Update left blocks pred/succ
-        //         put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-        //         if(old_payload_succ != NULL){
-        //             put(old_payload_succ, PtI(old_payload_pred));// pred
-        //         }  
-        //         // Update right blocks pred/succ
-        //         put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-        //         if(old_payload_succ_right != NULL){
-        //             put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
-        //         }
-        //     }
-        // }
-        // /*Case 2: The right block is the free root*/
-        // else if(right_free_block == free_root){    
-        //     // Check if the free root point to the left block
-        //     if(old_payload_succ_right == payload_pointer){
-        //         // Update linked list
-        //         put(payload_pointer, PtI(NULL)); // pred
-        //     }            
-        //     else{ // succ(FR) != left block
-        //         // Make left block FR and point it to right blocks successor
-        //         put(payload_pointer, PtI(NULL)); // pred
-        //         put(payload_pointer + 8, PtI(old_payload_succ_right)); // pred
-        //         if(old_payload_succ_right != NULL){
-        //             put(old_payload_succ_right, PtI(payload_pointer));// pred
-        //         }
-        //         // Update left block
-        //         put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-        //         if(old_payload_succ != NULL){
-        //             put(old_payload_succ, PtI(old_payload_pred));// pred
-        //         }  
-        //     }
-        // }      
-        // /*Case 3: The left block is the free root*/
-        // else if(payload_pointer == free_root){
-        //     // Check if the free root point to the right block
-        //     if(old_payload_succ == right_free_block){
-        //         // Update linked list
-        //         put(payload_pointer, PtI(NULL)); // pred
-        //         put((char*)payload_pointer + 8, PtI(old_payload_succ_right)); // pred
-        //         if(old_payload_succ_right != NULL){
-        //             put(old_payload_succ_right, PtI(payload_pointer)); // pred
-        //         }
-        //     }            
-        //     else{  // succ(FR) != right-adjacent free block
-        //         // Make left block FR 
-        //         put(payload_pointer, PtI(NULL)); // pred
-        //         put(payload_pointer + 8, PtI(old_payload_succ)); // pred
-        //         if(old_payload_succ != NULL){
-        //             put(old_payload_succ, PtI(payload_pointer));// pred
-        //         }
-        //         // Update right blocks pred to point to its succ
-        //         put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-        //         if(old_payload_succ_right != NULL){
-        //             put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
-        //         }  
-        //     }
-        // }
 
         mm_checkheap(__LINE__);
     }

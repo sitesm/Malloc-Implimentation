@@ -876,7 +876,7 @@ size_t place(void* payload_pointer, size_t block_size){
             }
         }else{ 
             // Set successor as new free root
-            if(old_payload_pred_succ != NULL){
+            if(old_payload_succ != NULL){
                 put(old_payload_succ, PtI(NULL)); // pred
             }
             free_root[old_idx] = old_payload_succ;

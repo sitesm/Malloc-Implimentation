@@ -967,7 +967,7 @@ void* ItP(size_t ptr_int){
 */
 int get_index(size_t block_size){
     // Get index and correct to start at index 0
-    if(0 <= block_size < 32){
+    if(block_size < 32){
         return 0;
     }else{
         return((int)floor(log2(block_size)) - 4);

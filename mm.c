@@ -695,7 +695,7 @@ void* coalesce(void *payload_pointer){
         if(rgt_idx == lft_idx){
             
             /* Case 1: Right is free root */
-            if(free_root[rgt_idx] == payload_pointer){
+            if(free_root[rgt_idx] == right_free_block){
                 // Right points to left
                 if(old_payload_succ_right == payload_pointer){
                     // Update free root
@@ -716,9 +716,9 @@ void* coalesce(void *payload_pointer){
                         put(old_payload_succ, PtI(old_payload_pred)); // pred      
                     }
                 }
-                
+
             /* Case 2: Left is free root */
-            }else if(free_root[lft_idx] == right_free_block){
+            }else if(free_root[lft_idx] == payload_pointer){
 
                 // Left points to right
                 if(old_payload_succ == right_free_block){

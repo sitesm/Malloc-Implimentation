@@ -265,7 +265,6 @@ void* realloc(void* oldptr, size_t size)
         size_t old_size = get_size(GHA(oldptr));
         int64_t remainder = (int64_t)old_size - (int64_t)block_size;
         int old_idx = get_index(old_size);
-        int rem_idx = get_index(remainder);
 
         // Old pointers
         void* old_payload_succ = ItP(get(next_blk(oldptr) + 8)); // succ
@@ -682,7 +681,7 @@ void* coalesce(void *payload_pointer){
         old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
 
         // Block size index
-        blk_idx = get_size(block_size);
+        blk_idx = get_index(block_size);
 
         // Add new larger block to the correct list
         put(payload_pointer, PtI(NULL)); // pred
@@ -825,7 +824,6 @@ size_t place(void* payload_pointer, size_t block_size){
     void* old_payload_pred = ItP(get(payload_pointer));
 
     // Get free root and remainder index
-    int blk_idx = get_index(block_size);
     int rem_idx = get_index(remainder);
     int old_idx = get_index(old_size);
 

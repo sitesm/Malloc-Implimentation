@@ -49,7 +49,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -437,8 +437,8 @@ bool mm_checkheap(int lineno)
 bool allocate_page(){
 
     // 1/32 MiB
-    size_t page_size = 1048576;
-    // size_t page_size = 32768;
+    // size_t page_size = 1048576;
+    size_t page_size = 32768;
 
     // Allocate a page (page_size bytes);
     void *payload_pointer = mem_sbrk(page_size); // mem-brk returns a PP in this implimentation

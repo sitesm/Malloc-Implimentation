@@ -650,7 +650,7 @@ void* coalesce(void *payload_pointer){
         // Add new block to the correct free list
         put(payload_pointer, PtI(NULL)); // pred
         put((char*)payload_pointer + 8, PtI(free_root[blk_idx])); // succ
-        if(free_root[lft_idx] == NULL){
+        if(free_root[blk_idx] != NULL){
             put(free_root[blk_idx], PtI(payload_pointer)); // pred
         }
 

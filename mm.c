@@ -49,7 +49,7 @@
  * uncomment the following line. Be sure not to have debugging enabled
  * in your final submission.
  */
-// #define DEBUG
+#define DEBUG
 
 #ifdef DEBUG
 /* When debugging is enabled, the underlying functions get called */
@@ -365,8 +365,9 @@ bool mm_checkheap(int lineno)
 #ifdef DEBUG
     dbg_printf("\nChecking Heap...\n");
 
+    int idx = 0;
     // Vars for checking free list 
-    char* next_free = free_root;
+    char* next_free = free_root[idx];
     char* pred = NULL;
 
     // Vars for checking allocated blocks (first block)
@@ -402,6 +403,15 @@ bool mm_checkheap(int lineno)
         // go to next free block
         pred = next_free;
         next_free = ItP(get(next_free + 8));   
+
+        if(next_free == NULL){
+            idx ++;
+            next_free = free_root[idx];
+        }
+
+        if(idx > 12){
+            break;
+        }
     }
 
     // // Check allocated blocks (not needed right now)

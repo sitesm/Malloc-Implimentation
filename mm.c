@@ -602,7 +602,9 @@ void* coalesce(void *payload_pointer){
                 put(old_payload_succ, PtI(old_payload_pred)); // pred
             }
         }else{ 
-            put(old_payload_succ, PtI(NULL)); // pred
+            if(old_payload_succ != NULL){
+                put(old_payload_succ, PtI(NULL)); // pred
+            }
             free_root[rgt_idx] = old_payload_succ;
         }
 
@@ -649,7 +651,9 @@ void* coalesce(void *payload_pointer){
             }
         }else{
             // Update free root
-            put(old_payload_succ, PtI(NULL)); // pred
+            if(old_payload_succ != NULL){
+                put(old_payload_succ, PtI(NULL)); // pred
+            }
             free_root[lft_idx] = old_payload_succ;
         }
 
@@ -708,7 +712,9 @@ void* coalesce(void *payload_pointer){
             }
         }else{
             // Update free root
-            put(old_payload_succ, PtI(NULL)); // pred
+            if(old_payload_succ != NULL){
+                put(old_payload_succ, PtI(NULL)); // pred
+            }
             free_root[lft_idx] = old_payload_succ;
         }
 
@@ -721,8 +727,10 @@ void* coalesce(void *payload_pointer){
             }
         }else{
             // Update free root
-            put(old_payload_succ_right, PtI(NULL)); // pred
-            free_root[rgt_idx] = old_payload_succ;
+            if(old_payload_succ_right != NULL){
+                put(old_payload_succ_right, PtI(NULL)); // pred
+            }
+            free_root[rgt_idx] = old_payload_succ_right;
         }
 
         // /* Case 1: Neither prev or next are the free roots of their*/
@@ -842,7 +850,10 @@ size_t place(void* payload_pointer, size_t block_size){
             }
         }else{ // payload_pointer == free_root
             // Update free root
-            put(old_payload_succ, PtI(NULL)); // pred
+            // Set successor as new free root
+            if(old_payload_succ != NULL){
+                put(old_payload_succ, PtI(NULL)); // pred
+            }
             free_root[old_idx] = old_payload_succ;
         }
 
@@ -957,33 +968,6 @@ void* ItP(size_t ptr_int){
 * get_index: Takes in a block size and returns which free root index it is in 
 */
 int get_index(size_t block_size){
-    // Get index and correct 
+    // Get index and correct to start at index 0
     return((int)floor(log2(block_size)) - 5);
-
-    // // Long as buns: is there a better way to do this?
-    // if(block_size == 32){
-    //     return 0;
-    // }else if(64 <= block_size < 128){
-    //     return 1;
-    // }else if(128 <= block_size < 256){
-    //     return 2;
-    // }else if(256 <= block_size < 512){
-    //     return 3;
-    // }else if(512 <= block_size < 1024){
-    //     return 4;
-    // }else if(1024 <= block_size < 2048){
-    //     return 5;
-    // }else if(2048 <= block_size < 4096){
-    //     return 6;
-    // }else if(4096 <= block_size < 8192){
-    //     return 7;
-    // }else if(8192 <= block_size < 16384){
-    //     return 8;
-    // }else if(16384 <= block_size < 32768){
-    //     return 9;
-    // }else if(32768 <= block_size < 65536){
-    //     return 10;
-    // }else{ // block_size > 65536
-    //     return 11;
-    // }
 }

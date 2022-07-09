@@ -93,9 +93,10 @@ static void* find_fit(size_t block_size);
 static void put_pointer(void* addr, void* pointer);
 static size_t PtI(void* pointer);
 static void* ItP(size_t ptr_int);
+static int get_index(size_t block_size);
 
-/* Global Variables: Only allowed 128 bytes*/
-char *free_root = NULL; // The root of the the free list (points to payload pointer; INVARIANT: pred is always NULL)
+/* Global Variables: Only allowed 128 bytes */
+char *free_root[12]; 
 static char *TOH = NULL; // Next free payload pointer of the never allocated heap area
 
 /* 
@@ -110,8 +111,12 @@ static size_t align(size_t x){
  */
 bool mm_init(void){
 
-    // Reset free_root to null because traces are ran twicee
-    free_root = NULL;
+    // Reset all free_roots to null because traces are ran twice
+    for(int i = 0; i<12; i++){
+        free_root[i] = NULL;
+    }
+
+    // Reset
     TOH = NULL;
 
     // Initial allocate of 8 words
@@ -255,8 +260,16 @@ void* realloc(void* oldptr, size_t size)
 
     // Realloc and free
     if(get_alloc(GHA(oldptr))){
+
+        // Gather information
         size_t old_size = get_size(GHA(oldptr));
         int64_t remainder = (int64_t)old_size - (int64_t)block_size;
+        int old_idx = get_index(old_size);
+        int rem_idx = get_index(remainder);
+
+        // Old pointers
+        void* old_payload_succ = ItP(get(next_blk(oldptr) + 8)); // succ
+        void* old_payload_pred = ItP(get(next_blk(oldptr))); // pred
 
         // Realloc will take up the whole block again, no extra bytes
         if(remainder >= 0 && remainder <= 32){    
@@ -276,6 +289,19 @@ void* realloc(void* oldptr, size_t size)
             put(GHA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
             put(GFA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
 
+            // Update the correct free list
+            if(oldptr != free_root[old_idx]){
+                // Skip over old free block
+                put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+                if(old_payload_succ != NULL){ 
+                    put(old_payload_succ, PtI(old_payload_pred)); // pred
+                }
+            }else{ 
+                put(old_payload_succ, PtI(NULL)); // pred
+                free_root[old_idx] = old_payload_succ;
+            }
+
+            // This will update the remaining bytes correctly
             free(next_blk(oldptr));
 
             return oldptr;
@@ -506,24 +532,32 @@ void* coalesce(void *payload_pointer){
     void* old_payload_succ;
     void* old_payload_pred;
 
+    // Indexes
+    int blk_idx;
+    int lft_idx; // left
+    int rgt_idx; // ritgh
+
     // prev and next, allocated 
     if(prev_block && next_block){
 
         dbg_printf("Coalesce Block 1\n");
 
+        // Get index of block_size
+        blk_idx = get_index(block_size);
+
         // Update free list
-        if(free_root != NULL){ 
+        if(free_root[blk_idx] != NULL){ 
             // Its never possibly for a newly freed block to be the free root
             put(payload_pointer, PtI(NULL)); // pred
-            put((char*)payload_pointer + 8, PtI(free_root)); // succ
-            put(free_root, PtI(payload_pointer)); // pred       
+            put((char*)payload_pointer + 8, PtI(free_root[blk_idx])); // succ
+            put(free_root[blk_idx], PtI(payload_pointer)); // pred       
         }else{ // i.e the first allocate_page()
             put(payload_pointer, PtI(NULL)); // pred
             put((char*)payload_pointer + 8, PtI(NULL)); // pred
         }
    
         // Update the free root
-        free_root = payload_pointer;
+        free_root[blk_idx] = payload_pointer;
 
         mm_checkheap(__LINE__);
 
@@ -535,6 +569,9 @@ void* coalesce(void *payload_pointer){
 
         dbg_printf("Coalesce Block 2\n");
 
+        // Old next blocks index
+        rgt_idx = get_index(get_size(GHA(next_blk(payload_pointer))));
+
         // Save next blocks payload pointer's old successor and predeseccor
         old_payload_succ = ItP(get(next_blk(payload_pointer) + 8)); // succ
         old_payload_pred = ItP(get(next_blk(payload_pointer))); // pred
@@ -545,25 +582,30 @@ void* coalesce(void *payload_pointer){
         put(GHA(payload_pointer), pack(block_size, 0));
         put(GFA(payload_pointer), pack(block_size, 0));
 
-        // Update linked list
-        if(old_next_blk != free_root){
-            put(payload_pointer, PtI(NULL)); // pred
-            put((char*)payload_pointer + 8, PtI(free_root)); // succ
-            put(free_root, PtI(payload_pointer)); // pred
+        // Updated block indexes
+        blk_idx = get_index(block_size);
+
+        // Add new larger block to the correct list
+        put(payload_pointer, PtI(NULL)); // pred
+        put((char*)payload_pointer + 8, PtI(free_root[blk_idx])); // succ
+        if(free_root[blk_idx] != NULL){
+            put(free_root[blk_idx], PtI(payload_pointer)); // pred     
+        }
+
+        // Update remainding bytes free lists root
+        free_root[blk_idx] = payload_pointer;
+
+        // Update old blocks free list
+        if(old_next_blk != free_root[rgt_idx]){
+            // Skip over old free block
             put((char*)old_payload_pred + 8, PtI(old_payload_succ));
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(old_payload_pred)); // pred
             }
         }else{ 
-            put(payload_pointer, PtI(NULL)); // pred
-            put((char*)payload_pointer + 8, PtI(old_payload_succ)); // succ
-            if(old_payload_succ != NULL){ 
-                put(old_payload_succ, PtI(payload_pointer)); // pred
-            }
+            put(old_payload_succ, PtI(NULL)); // pred
+            free_root[rgt_idx] = old_payload_succ;
         }
-
-        // Update the free root
-        free_root = payload_pointer;
 
         mm_checkheap(__LINE__);
     }
@@ -572,6 +614,9 @@ void* coalesce(void *payload_pointer){
     else if(!prev_block && next_block){  
 
         dbg_printf("Coalesce Block 3\n");
+
+        // Left blocks old free root index
+        lft_idx = get_index(get_size(GHA(prev_blk(payload_pointer))));
 
         // Update block information
         block_size += get_size(GHA(prev_blk(payload_pointer)));
@@ -583,19 +628,31 @@ void* coalesce(void *payload_pointer){
         old_payload_succ = ItP(get(((char*)payload_pointer + 8))); // succ
         old_payload_pred = ItP(get(payload_pointer)); // pred
 
-        // Update linked list
-        if(payload_pointer != free_root){
-            put(payload_pointer, PtI(NULL)); // pred
-            put((char*)payload_pointer + 8, PtI(free_root)); // succ
-            put(free_root, PtI(payload_pointer)); // pred
+        // Get new block size index 
+        blk_idx = get_index(block_size);
+
+        // Add new block to the correct free list
+        put(payload_pointer, PtI(NULL)); // pred
+        put((char*)payload_pointer + 8, PtI(free_root[blk_idx])); // succ
+        if(free_root[lft_idx] == NULL){
+            put(free_root[blk_idx], PtI(payload_pointer)); // pred
+        }
+
+        // Update free root
+        free_root[blk_idx] = payload_pointer;
+
+        // Update left blocks free list
+        if(payload_pointer != free_root[lft_idx]){
+            // In the middle of the free list
             put((char*)old_payload_pred + 8, PtI(old_payload_succ));
             if(old_payload_succ != NULL){ 
                 put(old_payload_succ, PtI(old_payload_pred)); // pred
             }
+        }else{
+            // Update free root
+            put(old_payload_succ, PtI(NULL)); // pred
+            free_root[lft_idx] = old_payload_succ;
         }
-
-        // Update the free root
-        free_root = payload_pointer;
 
         mm_checkheap(__LINE__);
     }
@@ -610,6 +667,10 @@ void* coalesce(void *payload_pointer){
         void* old_payload_pred_right = ItP(get(next_blk(payload_pointer))); // pred
         void* right_free_block = next_blk(payload_pointer);
 
+        // Left and right blocks index
+        lft_idx = get_index(get_size(GHA(prev_blk(payload_pointer))));
+        rgt_idx = get_index(get_size(GHA(next_blk(payload_pointer))));
+
         // Update block information
         block_size += get_size(GHA(prev_blk(payload_pointer))) + get_size(GFA(next_blk(payload_pointer)));
         put(GHA(prev_blk(payload_pointer)), pack(block_size,0));
@@ -619,104 +680,128 @@ void* coalesce(void *payload_pointer){
         // Save old pred/succ of prev_block
         old_payload_pred = ItP(*(size_t*)payload_pointer); // pred
         old_payload_succ = ItP(*(size_t*)((char*)payload_pointer + 8)); // succ
-        
-        /* Case 1: Neither prev or next are the free root*/
-        if(payload_pointer != free_root && right_free_block != free_root) {
 
-            // Update linked list after to preserve order 
-            put(payload_pointer, PtI(NULL)); // pred
-            put((char*)payload_pointer + 8, PtI(free_root));// succ
-            put(free_root, PtI(payload_pointer)); // pred
+        // Block size index
+        blk_idx = get_size(block_size);
 
-            // Check if the left blocks successor is the right block
-            if(old_payload_succ == right_free_block){
-                put((char*)old_payload_pred + 8, PtI(old_payload_succ_right));// succ
-                if(old_payload_succ_right != NULL){
-                    put(old_payload_succ_right, PtI(old_payload_pred));// succ
-                } 
-            }
-
-            // Check if the right blocks successor is the left block
-            else if(old_payload_succ_right == payload_pointer){
-                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ));// succ
-                if(old_payload_succ != NULL){
-                    put(old_payload_succ, PtI(old_payload_pred_right));// succ
-                } 
-            }
-
-            // Neither block points to the other
-            else{ 
-                // Update left blocks pred/succ
-                put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-                if(old_payload_succ != NULL){
-                    put(old_payload_succ, PtI(old_payload_pred));// pred
-                }  
-
-                // Update right blocks pred/succ
-                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                if(old_payload_succ_right != NULL){
-                    put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
-                }
-            }
-        }
-
-        /*Case 2: The right block is the free root*/
-        else if(right_free_block == free_root){    
-
-            // Check if the free root point to the left block
-            if(old_payload_succ_right == payload_pointer){
-                // Update linked list
-                put(payload_pointer, PtI(NULL)); // pred
-            }            
-            else{ // succ(FR) != left block
-
-                // Make left block FR and point it to right blocks successor
-                put(payload_pointer, PtI(NULL)); // pred
-                put(payload_pointer + 8, PtI(old_payload_succ_right)); // pred
-                if(old_payload_succ_right != NULL){
-                    put(old_payload_succ_right, PtI(payload_pointer));// pred
-                }
-
-                // Update left block
-                put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-                if(old_payload_succ != NULL){
-                    put(old_payload_succ, PtI(old_payload_pred));// pred
-                }  
-            }
-        }
-        
-        /*Case 3: The left block is the free root*/
-        else if(payload_pointer == free_root){
-
-            // Check if the free root point to the right block
-            if(old_payload_succ == right_free_block){
-
-                // Update linked list
-                put(payload_pointer, PtI(NULL)); // pred
-                put((char*)payload_pointer + 8, PtI(old_payload_succ_right)); // pred
-                if(old_payload_succ_right != NULL){
-                    put(old_payload_succ_right, PtI(payload_pointer)); // pred
-                }
-            }            
-            else{  // succ(FR) != right-adjacent free block
-
-                // Make left block FR 
-                put(payload_pointer, PtI(NULL)); // pred
-                put(payload_pointer + 8, PtI(old_payload_succ)); // pred
-                if(old_payload_succ != NULL){
-                    put(old_payload_succ, PtI(payload_pointer));// pred
-                }
-
-                // Update right blocks pred to point to its succ
-                put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-                if(old_payload_succ_right != NULL){
-                    put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
-                }  
-            }
+        // Add new larger block to the correct list
+        put(payload_pointer, PtI(NULL)); // pred
+        put((char*)payload_pointer + 8, PtI(free_root[blk_idx]));// succ
+        if(free_root[blk_idx] != NULL){
+            put(free_root[blk_idx], PtI(payload_pointer)); // pred
         }
 
         // Update the free root
-        free_root = payload_pointer;
+        free_root[blk_idx] = payload_pointer;
+
+
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        // This section of the code does not care if the prev/next blocks are in the same free list.
+        // It always updates the left block first, the the right block. NOTE: This may not be optimal
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        
+        // Update left blocks free list
+        if(payload_pointer != free_root[lft_idx]){
+            // In the middle of the free list
+            put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+            if(old_payload_succ != NULL){ 
+                put(old_payload_succ, PtI(old_payload_pred)); // pred
+            }
+        }else{
+            // Update free root
+            put(old_payload_succ, PtI(NULL)); // pred
+            free_root[lft_idx] = old_payload_succ;
+        }
+
+        // Update right blocks free list
+        if(right_free_block != free_root[rgt_idx]){
+            // In the middle of the free list
+            put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));
+            if(old_payload_succ_right != NULL){ 
+                put(old_payload_succ_right, PtI(old_payload_pred_right)); // pred
+            }
+        }else{
+            // Update free root
+            put(old_payload_succ_right, PtI(NULL)); // pred
+            free_root[rgt_idx] = old_payload_succ;
+        }
+
+        // /* Case 1: Neither prev or next are the free roots of their*/
+        // if(payload_pointer != free_root[lft_idx] && right_free_block != free_root[rgt_idx]) {
+        //     // Check if the left blocks successor is the right block
+        //     if(old_payload_succ == right_free_block){
+        //         put((char*)old_payload_pred + 8, PtI(old_payload_succ_right));// succ
+        //         if(old_payload_succ_right != NULL){
+        //             put(old_payload_succ_right, PtI(old_payload_pred));// succ
+        //         } 
+        //     }
+        //     // Check if the right blocks successor is the left block
+        //     else if(old_payload_succ_right == payload_pointer){
+        //         put((char*)old_payload_pred_right + 8, PtI(old_payload_succ));// succ
+        //         if(old_payload_succ != NULL){
+        //             put(old_payload_succ, PtI(old_payload_pred_right));// succ
+        //         } 
+        //     }
+        //     // Neither block points to the other
+        //     else{ 
+        //         // Update left blocks pred/succ
+        //         put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
+        //         if(old_payload_succ != NULL){
+        //             put(old_payload_succ, PtI(old_payload_pred));// pred
+        //         }  
+        //         // Update right blocks pred/succ
+        //         put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+        //         if(old_payload_succ_right != NULL){
+        //             put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
+        //         }
+        //     }
+        // }
+        // /*Case 2: The right block is the free root*/
+        // else if(right_free_block == free_root){    
+        //     // Check if the free root point to the left block
+        //     if(old_payload_succ_right == payload_pointer){
+        //         // Update linked list
+        //         put(payload_pointer, PtI(NULL)); // pred
+        //     }            
+        //     else{ // succ(FR) != left block
+        //         // Make left block FR and point it to right blocks successor
+        //         put(payload_pointer, PtI(NULL)); // pred
+        //         put(payload_pointer + 8, PtI(old_payload_succ_right)); // pred
+        //         if(old_payload_succ_right != NULL){
+        //             put(old_payload_succ_right, PtI(payload_pointer));// pred
+        //         }
+        //         // Update left block
+        //         put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
+        //         if(old_payload_succ != NULL){
+        //             put(old_payload_succ, PtI(old_payload_pred));// pred
+        //         }  
+        //     }
+        // }      
+        // /*Case 3: The left block is the free root*/
+        // else if(payload_pointer == free_root){
+        //     // Check if the free root point to the right block
+        //     if(old_payload_succ == right_free_block){
+        //         // Update linked list
+        //         put(payload_pointer, PtI(NULL)); // pred
+        //         put((char*)payload_pointer + 8, PtI(old_payload_succ_right)); // pred
+        //         if(old_payload_succ_right != NULL){
+        //             put(old_payload_succ_right, PtI(payload_pointer)); // pred
+        //         }
+        //     }            
+        //     else{  // succ(FR) != right-adjacent free block
+        //         // Make left block FR 
+        //         put(payload_pointer, PtI(NULL)); // pred
+        //         put(payload_pointer + 8, PtI(old_payload_succ)); // pred
+        //         if(old_payload_succ != NULL){
+        //             put(old_payload_succ, PtI(payload_pointer));// pred
+        //         }
+        //         // Update right blocks pred to point to its succ
+        //         put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
+        //         if(old_payload_succ_right != NULL){
+        //             put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
+        //         }  
+        //     }
+        // }
 
         mm_checkheap(__LINE__);
     }
@@ -739,6 +824,11 @@ size_t place(void* payload_pointer, size_t block_size){
     void* old_payload_succ = ItP(get((char*)payload_pointer + 8));
     void* old_payload_pred = ItP(get(payload_pointer));
 
+    // Get free root and remainder index
+    int blk_idx = get_index(block_size);
+    int rem_idx = get_index(remainder);
+    int old_idx = get_index(old_size);
+
     // If the remaining block is going to be smaller than the minimum block size
     if(remainder < 32){
         // set the header and footer of the whole allocated block
@@ -746,16 +836,16 @@ size_t place(void* payload_pointer, size_t block_size){
         put(GFA(payload_pointer), pack(old_size, 1)); 
 
         // Check for free pointer
-        if(payload_pointer != free_root){
+        if(payload_pointer != free_root[old_idx]){
             // Jump over fully allocated free block
             put(old_payload_pred + 8, PtI(old_payload_succ)); // succ
             if(old_payload_succ != NULL){
                 put(old_payload_succ, PtI(old_payload_pred)); // pred      
             }
-        }else{ // paylaod_pointer == free_root
+        }else{ // payload_pointer == free_root
             // Update free root
             put(old_payload_succ, PtI(NULL)); // pred
-            free_root = old_payload_succ;
+            free_root[old_idx] = old_payload_succ;
         }
 
         return old_size;
@@ -767,39 +857,33 @@ size_t place(void* payload_pointer, size_t block_size){
 
         // Set header and footer for un-used bytes 
         put(GHA(next_blk(payload_pointer)), pack(remainder, 0)); 
-        put(GFA(next_blk(payload_pointer)), pack(remainder, 0));     
+        put(GFA(next_blk(payload_pointer)), pack(remainder, 0));  
 
-        // Check for free root
-        if(free_root != NULL){ 
-            // Payload pointer is not the free root
-            if(payload_pointer != free_root){
-                put(next_blk(payload_pointer), PtI(NULL)); // pred
-                put(next_blk(payload_pointer) + 8, PtI(free_root)); // succ
-                put(free_root, PtI(next_blk(payload_pointer))); // pred
-                put((char*)old_payload_pred + 8, PtI(old_payload_succ));
-                if(old_payload_succ != NULL){ 
-                    put(old_payload_succ, PtI(old_payload_pred)); // pred
-                }
-            }else{ 
-                put(next_blk(payload_pointer), PtI(NULL)); // pred
-                put(next_blk(payload_pointer) + 8, PtI(old_payload_succ)); // succ
-                if(old_payload_succ != NULL){
-                    put(old_payload_succ, PtI(next_blk(payload_pointer))); // pred
-                }
-            }
-             
-        }else{ // NOTE: 99% sure will never happen
-            put(next_blk(payload_pointer), PtI(NULL)); // pred
-            put(next_blk(payload_pointer) + 8, PtI(NULL)); // pred
+        // Add remaining bytes to the correct free list
+        put(next_blk(payload_pointer), PtI(NULL)); // pred
+        put(next_blk(payload_pointer) + 8, PtI(free_root[rem_idx])); // succ
+        if(free_root[rem_idx] != NULL){
+            put(free_root[rem_idx], PtI(next_blk(payload_pointer))); // pred      
         }
 
-        // Update free root
-        free_root = next_blk(payload_pointer);
-        
-        mm_checkheap(__LINE__);
-        
-        return block_size;
-    }
+        // Update correct lists free root
+        free_root[rem_idx] = next_blk(payload_pointer);   
+
+        // Payload pointer was not the free root
+        if(payload_pointer != free_root[old_idx]){
+            // Skip over allocated block in old list
+            put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+            if(old_payload_succ != NULL){ 
+                put(old_payload_succ, PtI(old_payload_pred)); // pred
+            }
+        }else{ 
+            // Set successor as new free root
+            put(old_payload_succ, PtI(NULL)); // pred
+            free_root[old_idx] = old_payload_succ;
+        }
+
+        return block_size;           
+    }  
 } 
 
 /*
@@ -807,14 +891,19 @@ size_t place(void* payload_pointer, size_t block_size){
 */
 void* find_fit(size_t block_size){
 
-    // Check to see if any blocks have been added to the free list yet
-    if(free_root == NULL){
-        return NULL;
-    }
+    // Get the index
+    int idx = get_index(block_size);
 
     // Set the initial successor pointer
-    char* succ = free_root;
+    char* succ = free_root[idx];
 
+    // If the succ is null off the bat, go to the next list
+    while(succ == NULL){
+        idx++;
+        succ = free_root[idx];
+    }
+
+    // NOTE: Ideally, it should only go through this loop once
     while(succ != NULL){
         //get block size
         size_t size = get_size(GHA(succ));
@@ -824,8 +913,14 @@ void* find_fit(size_t block_size){
             return (void*)succ;
         }
 
-        // if not big enough, go to next free block
+        // if not big enough, go to next free block in the seg free list
         succ = ItP(get(succ + 8));
+
+        // End of free list, go to next list
+        if(succ == NULL){
+            succ = free_root[idx + 1];
+            idx++;
+        }
     }
 
     // no block found
@@ -847,4 +942,37 @@ void* ItP(size_t ptr_int){
     return (void*)(ptr_int);
 }
 
+/* 
+* get_index: Takes in a block size and returns which free root index it is in 
+*/
+int get_index(size_t block_size){
+    // Get index and correct 
+    return((int)floor(log2(block_size)) - 5);
 
+    // // Long as buns: is there a better way to do this?
+    // if(block_size == 32){
+    //     return 0;
+    // }else if(64 <= block_size < 128){
+    //     return 1;
+    // }else if(128 <= block_size < 256){
+    //     return 2;
+    // }else if(256 <= block_size < 512){
+    //     return 3;
+    // }else if(512 <= block_size < 1024){
+    //     return 4;
+    // }else if(1024 <= block_size < 2048){
+    //     return 5;
+    // }else if(2048 <= block_size < 4096){
+    //     return 6;
+    // }else if(4096 <= block_size < 8192){
+    //     return 7;
+    // }else if(8192 <= block_size < 16384){
+    //     return 8;
+    // }else if(16384 <= block_size < 32768){
+    //     return 9;
+    // }else if(32768 <= block_size < 65536){
+    //     return 10;
+    // }else{ // block_size > 65536
+    //     return 11;
+    // }
+}

@@ -77,7 +77,7 @@
 #define ALIGNMENT 16
 
 // Prototypes
-static bool allocate_page(void);
+static bool allocate_page(size_t page_size);
 static size_t pack(size_t size, int alloc);
 static void *GHA(void *payload_pointer);
 static void *GFA(void *payload_pointer);
@@ -134,7 +134,7 @@ bool mm_init(void){
     put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
-    if(!allocate_page()){
+    if(!allocate_page(4096)){
         printf("Initial page allocation failed\n");
         return false;
     }
@@ -185,7 +185,7 @@ void* malloc(size_t size){
 
     // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
     while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        if(!allocate_page()){
+        if(!allocate_page(32768)){
             printf("Page allocation failed during malloc");
             return NULL;
         }
@@ -396,10 +396,10 @@ bool mm_checkheap(int lineno)
 /*
 * allocate_page: Allocates a page and coalesces 
 */
-bool allocate_page(){
+bool allocate_page(size_t page_size){
 
     // 1/32 MiB
-    size_t page_size = 32768;
+    // size_t page_size = 32768;
 
     // Allocate a page (page_size bytes);
     void *payload_pointer = mem_sbrk(page_size); // mem-brk returns a PP in this implimentation
@@ -814,6 +814,8 @@ void* find_fit(size_t block_size){
 
     // Set the initial successor pointer
     char* succ = free_root;
+    size_t tmp_size = 99999999999999;
+    void* tmp_ptr = NULL;
 
     while(succ != NULL){
         //get block size
@@ -821,15 +823,27 @@ void* find_fit(size_t block_size){
 
         // check if its large enough
         if(size > block_size){
-            return (void*)succ;
+
+            // If it fits it exactly, use it
+            if(size == block_size){
+                return (void*)succ;
+            }else{
+                if(size < tmp_size){
+                    tmp_size = size;
+                    tmp_ptr = succ;
+                }
+            }
         }
 
-        // if not big enough, go to next free block
+        // go to next free block
         succ = ItP(get(succ + 8));
     }
 
+    // Will return NULL if no block is found
+    return (void*)tmp_ptr;
+
     // no block found
-    return NULL;
+    // return NULL;
 }
 
 /*

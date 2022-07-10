@@ -754,7 +754,9 @@ size_t place(void* payload_pointer, size_t block_size){
             }
         }else{ // paylaod_pointer == free_root
             // Update free root
-            put(old_payload_succ, PtI(NULL)); // pred
+            if(old_payload_succ != NULL){
+                put(old_payload_succ, PtI(NULL)); // pred
+            }
             free_root = old_payload_succ;
         }
 

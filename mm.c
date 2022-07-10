@@ -1002,17 +1002,17 @@ int get_index(size_t block_size){
         return 6;
     }else if(block_size == 128){
         return 7;
-    else if(128 < block_size < 256){
+    else if(128 < block_size && block_size < 256){
         return 8;
-    }else if(256 <= block_size < 512){
+    }else if(256 <= block_size && block_size < 512){
         return 9;
-    }else if(512 <= block_size < 1024){
+    }else if(512 <= block_size && block_size < 1024){
         return 10;
-    }else if(1024 <= block_size < 4096){
+    }else if(1024 <= block_size && block_size < 4096){
         return 11;
-    }else if(4096 <= block_size < 16384){
+    }else if(4096 <= block_size && block_size < 16384){
         return 12;
-    }else if(16384 <= block_size < 66536){
+    }else if(16384 <= block_size && block_size < 66536){
         return 13;
     }else if(block_size >= 66536){
         return 14;

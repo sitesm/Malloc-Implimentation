@@ -188,9 +188,9 @@ void* malloc(size_t size){
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
     
-    if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+    if(tmp_pos > mem_heap_hi()){
         size_t req_size =  PtI(tmp_pos) - PtI(mem_heap_hi());
-        allocate_page(align(req_size));
+        allocate_page(align(req_size+16));
     }
 
     // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
@@ -269,11 +269,6 @@ void* realloc(void* oldptr, size_t size)
         // Gather information
         size_t old_size = get_size(GHA(oldptr));
         int64_t remainder = (int64_t)old_size - (int64_t)block_size;
-        // int old_idx = get_index(old_size);
-
-        // Old pointers
-        // void* old_payload_succ = ItP(get(next_blk(oldptr) + 8)); // succ
-        // void* old_payload_pred = ItP(get(next_blk(oldptr))); // pred
 
         // Realloc will take up the whole block again, no extra bytes
         if(remainder >= 0 && remainder <= 32){    

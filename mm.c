@@ -182,23 +182,24 @@ void* malloc(size_t size){
 
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
-    if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        // Pre processing
-        size_t page_size = (size_t)(PtI(tmp_pos) - PtI(mem_heap_hi()));
-        page_size = align(page_size);
-        page_size = (page_size % 32 != 0) ? page_size + 16 : page_size;
+    
+    // if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+    //     // Pre processing
+    //     size_t page_size = (size_t)(PtI(tmp_pos) - PtI(mem_heap_hi()));
+    //     page_size = align(page_size);
+    //     page_size = (page_size % 32 != 0) ? page_size + 16 : page_size;
 
-        // Allocatee the page
-        allocate_page(page_size + 16);
-    }
-
-    // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
-    // while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-    //     if(!allocate_page(32768)){
-    //         printf("Page allocation failed during malloc");
-    //         return NULL;
-    //     }
+    //     // Allocatee the page
+    //     allocate_page(page_size);
     // }
+
+    // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
+    while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+        if(!allocate_page(32768)){
+            printf("Page allocation failed during malloc");
+            return NULL;
+        }
+    }
 
     // place the block at the top of the heap
     allocated_size = place((void*)TOH, block_size);

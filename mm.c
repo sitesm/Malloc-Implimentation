@@ -816,8 +816,8 @@ void* find_fit(size_t block_size){
 
     // Set the initial successor pointer
     char* succ = free_root;
-    size_t tmp_size = 99999999999999;
-    void* tmp_ptr = NULL;
+    // size_t tmp_size = 99999999999999;
+    // void* tmp_ptr = NULL;
 
     while(succ != NULL){
         //get block size
@@ -829,12 +829,13 @@ void* find_fit(size_t block_size){
             // If it fits it exactly, use it
             if(size == block_size){
                 return (void*)succ;
-            }else{
-                if(size < tmp_size){
-                    tmp_size = size;
-                    tmp_ptr = succ;
-                }
             }
+            // else{
+            //     if(size < tmp_size){
+            //         tmp_size = size;
+            //         tmp_ptr = succ;
+            //     }
+            // }
         }
 
         // go to next free block
@@ -842,10 +843,10 @@ void* find_fit(size_t block_size){
     }
 
     // Will return NULL if no block is found
-    return (void*)tmp_ptr;
+    // return (void*)tmp_ptr;
 
     // no block found
-    // return NULL;
+    return NULL;
 }
 
 /*

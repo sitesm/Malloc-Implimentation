@@ -289,20 +289,6 @@ void* realloc(void* oldptr, size_t size)
             put(GHA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
             put(GFA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
 
-            // // Update the correct free list
-            // if(oldptr != free_root[old_idx]){
-            //     // Skip over old free block
-            //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));
-            //     if(old_payload_succ != NULL){ 
-            //         put(old_payload_succ, PtI(old_payload_pred)); // pred
-            //     }
-            // }else{ 
-            //     if(old_payload_succ != NULL){
-            //         put(old_payload_succ, PtI(NULL)); // pred
-            //     }
-            //     free_root[old_idx] = old_payload_succ;
-            // }
-
             // This will update the remaining bytes correctly
             free(next_blk(oldptr));
 

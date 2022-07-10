@@ -191,7 +191,7 @@ void* malloc(size_t size){
     if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
         size_t req_size =  PtI(tmp_pos) - PtI(mem_heap_hi());
         // allocate_page((size_t)pow(2, ceil(log2(req_size))));
-        allocate_page(align(req_size+64));
+        allocate_page(align(req_size+128)); // Add overhead
     }
 
     // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 

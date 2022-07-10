@@ -1002,7 +1002,7 @@ int get_index(size_t block_size){
         return 6;
     }else if(block_size == 128){
         return 7;
-    else if(128 < block_size && block_size < 256){
+    }else if(128 < block_size && block_size < 256){
         return 8;
     }else if(256 <= block_size && block_size < 512){
         return 9;

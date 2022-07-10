@@ -139,7 +139,7 @@ bool mm_init(void){
     put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
-    if(!allocate_page(4096)){
+    if(!allocate_page(128)){
         printf("Initial page allocation failed\n");
         return false;
     }
@@ -190,9 +190,9 @@ void* malloc(size_t size){
     
     if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
         size_t req_size = align(PtI(tmp_pos) - PtI(mem_heap_hi()));
-        req_size = (req_size % 32 != 0) ? req_size + 48 : req_size + 32; // Keep it an even number of words
-        // allocate_page((size_t)pow(2, ceil(log2(req_size))));
-        allocate_page(req_size); // Add overhead
+        req_size = (req_size % 32 != 0) ? req_size + 16 : req_size; // Keep it an even number of words
+        allocate_page((size_t)pow(2, ceil(log2(req_size))));
+        // allocate_page(req_size); // Add overhead
     }
 
     // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 

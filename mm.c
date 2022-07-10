@@ -705,7 +705,8 @@ void* coalesce(void *payload_pointer){
         // This section of the code does not care if the prev/next blocks are in the same free list.
         // It always updates the left block first, the the right block. NOTE: This may not be optimal
         //////////////////////////////////////////////////////////////////////////////////////////////
-        
+
+        // Remove the old blocks from their respective lists 
         if(rgt_idx == lft_idx){
             
             /* Case 1: Neither prev or next are the free roots of their*/
@@ -1062,6 +1063,8 @@ int get_index(size_t block_size){
     // Get index and correct to start at index 0
     if(block_size < 32){
         return 0;
+    }else if(block_size >= 65536){
+        return 12;
     }else{
         return((int)floor(log2(block_size)) - 4);
     }

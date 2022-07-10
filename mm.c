@@ -185,7 +185,7 @@ void* malloc(size_t size){
 
     // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
     while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        if(!allocate_page(16384)){
+        if(!allocate_page(66528)){
             printf("Page allocation failed during malloc");
             return NULL;
         }

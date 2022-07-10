@@ -825,11 +825,11 @@ void* find_fit(size_t block_size){
 
         // check if its large enough
         if(size > block_size){
-
-            // If it fits it exactly, use it
-            if(size == block_size){
-                return (void*)succ;
-            }
+            return (void*)succ;
+            // // If it fits it exactly, use it
+            // if(size == block_size){
+            //     return (void*)succ;
+            // }
             // else{
             //     if(size < tmp_size){
             //         tmp_size = size;

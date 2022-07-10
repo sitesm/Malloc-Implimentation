@@ -77,7 +77,7 @@
 #define ALIGNMENT 16
 
 // Prototypes
-static bool allocate_page(void);
+static bool allocate_page(size_t size);
 static size_t pack(size_t size, int alloc);
 static void *GHA(void *payload_pointer);
 static void *GFA(void *payload_pointer);
@@ -139,7 +139,7 @@ bool mm_init(void){
     put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
-    if(!allocate_page()){
+    if(!allocate_page(4096)){
         printf("Initial page allocation failed\n");
         return false;
     }
@@ -184,17 +184,23 @@ void* malloc(size_t size){
     * When there is no blocks in the free list suitable
     * to fit the block size, add it to the top of heap
     ****************************************************/
+    
 
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
+    size_t req_size =  PtI((char*)tmp_pos - (char*)mem_heap_hi());
 
-    // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
-    while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        if(!allocate_page()){
-            printf("Page allocation failed during malloc");
-            return NULL;
-        }
+    if(!allocate_page(align(req_size))){
+        return NULL;
     }
+
+    // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
+    // while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+    //     if(!allocate_page()){
+    //         printf("Page allocation failed during malloc");
+    //         return NULL;
+    //     }
+    // }
 
     // place the block at the top of the heap
     allocated_size = place((void*)TOH, block_size);
@@ -420,24 +426,24 @@ bool mm_checkheap(int lineno)
 /*
 * allocate_page: Allocates a page and coalesces 
 */
-bool allocate_page(){
+bool allocate_page(size_t size){
 
     // 1/32 MiB
     // size_t page_size = 1048576;
-    size_t page_size = 32768;
+    // size_t page_size = 32768;
 
-    // Allocate a page (page_size bytes);
-    void *payload_pointer = mem_sbrk(page_size); // mem-brk returns a PP in this implimentation
+    // Allocate a page (size bytes);
+    void *payload_pointer = mem_sbrk(size); // mem-brk returns a PP in this implimentation
 
     // Initial allocation failed
     if(payload_pointer == NULL || *(int*)payload_pointer == -1){
-        printf("Page allocation failed: heap size %zu/%llu bytes\n", mem_heapsize() + page_size, MAX_HEAP_SIZE);
+        printf("Page allocation failed: heap size %zu/%llu bytes\n", mem_heapsize() + size, MAX_HEAP_SIZE);
         return false;
     }
 
     // Set footer and header blocks for allocated block
-    put(GHA(payload_pointer), pack(page_size,0)); // Overwrites old epilogue header
-    put(GFA(payload_pointer), pack(page_size,0));
+    put(GHA(payload_pointer), pack(size,0)); // Overwrites old epilogue header
+    put(GFA(payload_pointer), pack(size,0));
 
     // Set new epilogue header
     put(GHA(next_blk(payload_pointer)), pack(0,1));
@@ -534,7 +540,7 @@ void* coalesce(void *payload_pointer){
     // Indexes
     int blk_idx;
     int lft_idx; // left
-    int rgt_idx; // ritgh
+    int rgt_idx; // right
 
     // prev and next, allocated 
     if(prev_block && next_block){

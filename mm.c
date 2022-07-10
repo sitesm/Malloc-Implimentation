@@ -185,13 +185,12 @@ void* malloc(size_t size){
     * to fit the block size, add it to the top of heap
     ****************************************************/
     
-
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
-    size_t req_size =  PtI((void*)((char*)tmp_pos - (char*)mem_heap_hi()));
-
-    if(!allocate_page(align(req_size))){
-        return NULL;
+    
+    if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+        size_t req_size =  PtI((void*)((char*)tmp_pos - (char*)mem_heap_hi()));
+        allocate_page(align(req_size));
     }
 
     // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 

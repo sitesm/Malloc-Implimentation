@@ -188,9 +188,9 @@ void* malloc(size_t size){
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
     
-    if(tmp_pos > mem_heap_hi()){
+    if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
         size_t req_size =  PtI(tmp_pos) - PtI(mem_heap_hi());
-        allocate_page(align(req_size));
+        allocate_page((size_t)pow(2,ceil(log2(req_size))));
     }
 
     // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 

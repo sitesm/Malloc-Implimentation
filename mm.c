@@ -189,7 +189,7 @@ void* malloc(size_t size){
         page_size = (page_size % 32 != 0) ? page_size + 16 : page_size;
 
         // Allocatee the page
-        allocate_page(page_size);
+        allocate_page(page_size + 64);
     }
 
     // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 

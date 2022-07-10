@@ -265,7 +265,7 @@ void* realloc(void* oldptr, size_t size)
         // Gather information
         size_t old_size = get_size(GHA(oldptr));
         int64_t remainder = (int64_t)old_size - (int64_t)block_size;
-        int old_idx = get_index(old_size);
+        // int old_idx = get_index(old_size);
 
         // Old pointers
         // void* old_payload_succ = ItP(get(next_blk(oldptr) + 8)); // succ

@@ -268,8 +268,8 @@ void* realloc(void* oldptr, size_t size)
         int old_idx = get_index(old_size);
 
         // Old pointers
-        void* old_payload_succ = ItP(get(next_blk(oldptr) + 8)); // succ
-        void* old_payload_pred = ItP(get(next_blk(oldptr))); // pred
+        // void* old_payload_succ = ItP(get(next_blk(oldptr) + 8)); // succ
+        // void* old_payload_pred = ItP(get(next_blk(oldptr))); // pred
 
         // Realloc will take up the whole block again, no extra bytes
         if(remainder >= 0 && remainder <= 32){    
@@ -289,19 +289,19 @@ void* realloc(void* oldptr, size_t size)
             put(GHA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
             put(GFA(next_blk(oldptr)), pack((size_t)remainder, 1)); 
 
-            // Update the correct free list
-            if(oldptr != free_root[old_idx]){
-                // Skip over old free block
-                put((char*)old_payload_pred + 8, PtI(old_payload_succ));
-                if(old_payload_succ != NULL){ 
-                    put(old_payload_succ, PtI(old_payload_pred)); // pred
-                }
-            }else{ 
-                if(old_payload_succ != NULL){
-                    put(old_payload_succ, PtI(NULL)); // pred
-                }
-                free_root[old_idx] = old_payload_succ;
-            }
+            // // Update the correct free list
+            // if(oldptr != free_root[old_idx]){
+            //     // Skip over old free block
+            //     put((char*)old_payload_pred + 8, PtI(old_payload_succ));
+            //     if(old_payload_succ != NULL){ 
+            //         put(old_payload_succ, PtI(old_payload_pred)); // pred
+            //     }
+            // }else{ 
+            //     if(old_payload_succ != NULL){
+            //         put(old_payload_succ, PtI(NULL)); // pred
+            //     }
+            //     free_root[old_idx] = old_payload_succ;
+            // }
 
             // This will update the remaining bytes correctly
             free(next_blk(oldptr));
@@ -787,78 +787,6 @@ void* coalesce(void *payload_pointer){
                     }  
                 }
             }
-            // /* Case 1: Right is free root */
-            // if(free_root[rgt_idx] == right_free_block){
-            //     // Right points to left
-            //     if(old_payload_succ_right == payload_pointer){
-            //         // Update free root
-            //         if(old_payload_succ != NULL){
-            //             put(old_payload_succ, PtI(NULL)); // pred
-            //         }
-            //         free_root[rgt_idx] = old_payload_succ;
-            //     }else{
-            //         // Update free root
-            //         if(old_payload_succ_right != NULL){
-            //             put(old_payload_succ_right, PtI(NULL)); // pred
-            //         }
-            //         free_root[rgt_idx] = old_payload_succ_right;
-            //         // Skip over left
-            //         put(old_payload_pred + 8, PtI(old_payload_succ)); // succ
-            //         if(old_payload_succ != NULL){
-            //             put(old_payload_succ, PtI(old_payload_pred)); // pred      
-            //         }
-            //     }
-            // /* Case 2: Left is free root */
-            // }else if(free_root[lft_idx] == payload_pointer){
-            //     // Left points to right
-            //     if(old_payload_succ == right_free_block){
-            //         // Update free root
-            //         if(old_payload_succ_right != NULL){
-            //             put(old_payload_succ_right, PtI(NULL)); // pred
-            //         }
-            //         free_root[rgt_idx] = old_payload_succ_right;
-            //     }else{
-            //         // Update free root
-            //         if(old_payload_succ != NULL){
-            //             put(old_payload_succ, PtI(NULL)); // pred
-            //         }
-            //         free_root[rgt_idx] = old_payload_succ;
-            //         // Skip over right
-            //         put(old_payload_pred_right + 8, PtI(old_payload_succ_right)); // succ
-            //         if(old_payload_succ_right != NULL){
-            //             put(old_payload_succ_right, PtI(old_payload_pred_right)); // pred      
-            //         }
-            //     }
-            // /* Case 3: No block is the free root */
-            // }else{  
-            //     // Check if the left blocks successor is the right block
-            //     if(old_payload_succ == right_free_block){
-            //         put((char*)old_payload_pred + 8, PtI(old_payload_succ_right));// succ
-            //         if(old_payload_succ_right != NULL){
-            //             put(old_payload_succ_right, PtI(old_payload_pred));// succ
-            //         } 
-            //     }
-            //     // Check if the right blocks successor is the left block
-            //     else if(old_payload_succ_right == payload_pointer){
-            //         put((char*)old_payload_pred_right + 8, PtI(old_payload_succ));// succ
-            //         if(old_payload_succ != NULL){
-            //             put(old_payload_succ, PtI(old_payload_pred_right));// succ
-            //         } 
-            //     }
-            //     // Neither block points to the other
-            //     else{ 
-            //         // Update left blocks pred/succ
-            //         put((char*)old_payload_pred + 8, PtI(old_payload_succ));// succ
-            //         if(old_payload_succ != NULL){
-            //             put(old_payload_succ, PtI(old_payload_pred));// pred
-            //         }  
-            //         // Update right blocks pred/succ
-            //         put((char*)old_payload_pred_right + 8, PtI(old_payload_succ_right));// succ
-            //         if(old_payload_succ_right != NULL){
-            //             put(old_payload_succ_right, PtI(old_payload_pred_right));// pred
-            //         }
-            //     }
-            // }
 
         // The indexes are not the same
         }else{

@@ -1018,4 +1018,5 @@ int get_index(size_t block_size){
         return 14;
     }
 
+    return 14;
 }

@@ -188,7 +188,7 @@ void* malloc(size_t size){
 
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
-    size_t req_size =  PtI((char*)tmp_pos - (char*)mem_heap_hi());
+    size_t req_size =  PtI((void*)((char*)tmp_pos - (char*)mem_heap_hi()));
 
     if(!allocate_page(align(req_size))){
         return NULL;

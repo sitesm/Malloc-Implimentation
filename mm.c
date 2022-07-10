@@ -188,19 +188,20 @@ void* malloc(size_t size){
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
     
-    // if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-    //     size_t req_size =  PtI(tmp_pos) - PtI(mem_heap_hi());
-    //     // allocate_page((size_t)pow(2, ceil(log2(req_size))));
-    //     allocate_page(align(req_size+128)); // Add overhead
-    // }
+    if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+        size_t req_size = align(PtI(tmp_pos) - PtI(mem_heap_hi()));
+        req_size = (req_size % 32 != 0) ? req_size + 16 : req_size; // Keep it an even number of words
+        // allocate_page((size_t)pow(2, ceil(log2(req_size))));
+        allocate_page(req_size); // Add overhead
+    }
 
     // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
-    while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        if(!allocate_page(262144)){
-            printf("Page allocation failed during malloc");
-            return NULL;
-        }
-    }
+    // while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+    //     if(!allocate_page(262144)){
+    //         printf("Page allocation failed during malloc");
+    //         return NULL;
+    //     }
+    // }
 
     // place the block at the top of the heap
     allocated_size = place((void*)TOH, block_size);

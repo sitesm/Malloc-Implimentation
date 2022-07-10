@@ -190,7 +190,8 @@ void* malloc(size_t size){
     
     if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
         size_t req_size =  PtI(tmp_pos) - PtI(mem_heap_hi());
-        allocate_page((size_t)pow(2,ceil(log2(req_size))));
+        // allocate_page((size_t)pow(2, ceil(log2(req_size))));
+        allocate_page(align(req_size+64));
     }
 
     // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
@@ -424,7 +425,6 @@ bool allocate_page(size_t page_size){
     // 1/32 MiB
     // size_t page_size = 1048576;
     // size_t page_size = 32768;
-    // size_t page_size = (size_t)pow(2,ceil(log2(size)));
 
     // Allocate a page (size bytes);
     void *payload_pointer = mem_sbrk(page_size); // mem-brk returns a PP in this implimentation

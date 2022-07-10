@@ -189,7 +189,7 @@ void* malloc(size_t size){
     void *tmp_pos = TOH + block_size; 
     
     if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        size_t req_size =  PtI((void*)((char*)tmp_pos - (char*)mem_heap_hi()));
+        size_t req_size =  PtI(tmp_pos) - PtI(mem_heap_hi());
         allocate_page(align(req_size));
     }
 
@@ -212,7 +212,6 @@ void* malloc(size_t size){
     dbg_printf("----- Payload pointer : %p\n", payload_pointer);
     mm_checkheap(__LINE__);
     
-
     // return payload location 
     return (TOH - allocated_size);
 }

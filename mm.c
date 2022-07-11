@@ -193,10 +193,8 @@ void* malloc(size_t size){
         // get size needed
         size_t req_size = PtI(tmp_pos) - PtI((char*)mem_heap_hi());
 
-        // Make it divisable by 32
-        // req_size = (align(req_size) % 32 != 0) ? align(req_size) + 16 : align(req_size);
-
-        // Allocatee
+        // Allocate
+        // NOTE: 64 byte overhead to stop the epilogue from being over written
         if(!allocate_page(align(req_size) + 64)){
             return NULL;
         }

@@ -188,9 +188,9 @@ void* malloc(size_t size){
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
 
-
+    // Allocate the required size
     if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        size_t req_size = align(PtI(tmp_pos) - PtI((void*)((char*)mem_heap_hi() - 8)));
+        size_t req_size = align(PtI(tmp_pos) - PtI((void*)((char*)mem_heap_hi() + 8)));
         if(!allocate_page(req_size)){
             printf("Page allocation failed during malloc");
             return NULL;

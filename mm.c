@@ -427,7 +427,7 @@ bool mm_checkheap(int lineno)
 /*
 * allocate_page: Allocates a page and coalesces 
 */
-bool allocate_page(){
+bool allocate_page(size_t page_size){
 
     // 1/32 MiB
     // size_t page_size = 1048576;

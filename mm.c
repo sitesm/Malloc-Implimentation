@@ -194,10 +194,10 @@ void* malloc(size_t size){
         size_t req_size = PtI(tmp_pos) - PtI((char*)mem_heap_hi());
 
         // Make it divisable by 32
-        req_size = (align(req_size) % 32 != 0) ? align(req_size) + 8 : align(req_size);
+        // req_size = (align(req_size) % 32 != 0) ? align(req_size) + 8 : align(req_size);
 
         // Allocatee
-        if(!allocate_page(req_size)){
+        if(!allocate_page(align(req_size) + 8)){
             return NULL;
         }
     }

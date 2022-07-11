@@ -189,15 +189,15 @@ void* malloc(size_t size){
     void *tmp_pos = TOH + block_size; 
 
     // Allocate more memory if needed
-    if(tmp_pos > (void*)((char*)mem_heap_hi())){
+    if(tmp_pos > (void*)((char*)mem_heap_hi() - 7)){
         // get size needed
         size_t req_size = PtI(tmp_pos) - PtI((char*)mem_heap_hi());
 
         // Make it divisable by 32
-        // req_size = (align(req_size) % 32 != 0) ? align(req_size) + 8 : align(req_size);
+        req_size = (align(req_size) % 32 != 0) ? align(req_size) + 8 : align(req_size);
 
         // Allocatee
-        if(!allocate_page(align(req_size) + 8)){
+        if(!allocate_page(req_size)){
             return NULL;
         }
     }

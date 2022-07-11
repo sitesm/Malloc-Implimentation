@@ -197,7 +197,7 @@ void* malloc(size_t size){
         // req_size = (align(req_size) % 32 != 0) ? align(req_size) + 16 : align(req_size);
 
         // Allocatee
-        if(!allocate_page(align(req_size))){
+        if(!allocate_page(align(req_size) + 64)){
             return NULL;
         }
     }

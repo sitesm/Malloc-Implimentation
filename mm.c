@@ -191,7 +191,7 @@ void* malloc(size_t size){
     // Allocate more memory if needed
     if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
         // get size needed
-        size_t req_size = PtI(tmp_pos) - PtI((char*)mem_heap_hi() + 8);
+        size_t req_size = PtI(tmp_pos) - PtI((char*)mem_heap_hi() + 1);
 
         // Make it divisable by 32
         req_size = (align(req_size) % 32 != 0) ? align(req_size) + 16 : align(req_size);
@@ -540,7 +540,7 @@ void* coalesce(void *payload_pointer){
     // Indexes
     int blk_idx;
     int lft_idx; // left
-    int rgt_idx; // ritgh
+    int rgt_idx; // right
 
     // prev and next, allocated 
     if(prev_block && next_block){
@@ -692,11 +692,6 @@ void* coalesce(void *payload_pointer){
 
         // Block size index
         blk_idx = get_index(block_size);
-
-        //////////////////////////////////////////////////////////////////////////////////////////////
-        // This section of the code does not care if the prev/next blocks are in the same free list.
-        // It always updates the left block first, the the right block. NOTE: This may not be optimal
-        //////////////////////////////////////////////////////////////////////////////////////////////
 
         // Remove the old blocks from their respective lists 
         if(rgt_idx == lft_idx){
@@ -925,7 +920,7 @@ void* find_fit(size_t block_size){
         idx++;
 
         // If max index is surpassed
-        if(idx > 11){
+        if(idx > 13){
             return NULL;
         }
 
@@ -952,7 +947,7 @@ void* find_fit(size_t block_size){
         }
 
         // If max index is surpassed
-        if(idx > 11){
+        if(idx > 13){
             return NULL;
         }
     }

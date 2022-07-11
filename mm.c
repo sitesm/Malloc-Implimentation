@@ -189,7 +189,7 @@ void* malloc(size_t size){
     void *tmp_pos = TOH + block_size; 
 
     // Allocate more memory if needed
-    if(tmp_pos >= (void*)((char*)mem_heap_hi()) - 8){
+    if(tmp_pos >= (void*)((char*)mem_heap_hi())){
         // get size needed
         size_t req_size = PtI(tmp_pos) - PtI((char*)mem_heap_hi());
 

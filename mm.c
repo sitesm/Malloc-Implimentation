@@ -278,7 +278,6 @@ void* realloc(void* oldptr, size_t size)
         size_t old_size = get_size(GHA(oldptr));
         int64_t remainder = (int64_t)old_size - (int64_t)block_size;
 
-
         // Realloc will take up the whole block again, no extra bytes
         if(remainder >= 0 && remainder <= 32){    
             put(GHA(oldptr), pack(old_size, 1));
@@ -931,7 +930,7 @@ void* find_fit(size_t block_size){
         size_t size = get_size(GHA(succ));
 
         // check if its large enough
-        if(size > block_size){
+        if(size >= block_size){
             return (void*)succ;
         }
 

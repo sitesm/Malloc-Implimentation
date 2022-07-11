@@ -77,7 +77,7 @@
 #define ALIGNMENT 16
 
 // Prototypes
-static bool allocate_page(void);
+static bool allocate_page(size_t page_size);
 static size_t pack(size_t size, int alloc);
 static void *GHA(void *payload_pointer);
 static void *GFA(void *payload_pointer);
@@ -139,7 +139,7 @@ bool mm_init(void){
     put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
-    if(!allocate_page()){
+    if(!allocate_page(32768)){
         printf("Initial page allocation failed\n");
         return false;
     }
@@ -188,9 +188,16 @@ void* malloc(size_t size){
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
 
+    // if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+    //     if(!allocate_page(32768)){
+    //         printf("Page allocation failed during malloc");
+    //         return NULL;
+    //     }
+    // }
+
     // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
     while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        if(!allocate_page()){
+        if(!allocate_page(32768)){
             printf("Page allocation failed during malloc");
             return NULL;
         }

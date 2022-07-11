@@ -139,7 +139,7 @@ bool mm_init(void){
     put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
-    if(!allocate_page(32768)){
+    if(!allocate_page(4096)){
         printf("Initial page allocation failed\n");
         return false;
     }
@@ -188,13 +188,27 @@ void* malloc(size_t size){
     // tmp_pos = how far the block will extend; also next PP
     void *tmp_pos = TOH + block_size; 
 
-    // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
-    while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-        if(!allocate_page(32768)){
-            printf("Page allocation failed during malloc");
+    // Allocate more memory if needed
+    if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+        // get size needed
+        size_t req_size = PtI((char*)mem_heap_hi() + 8) - PtI(tmp_pos);
+
+        // Make it divisable by 32
+        req_size = (align(req_size) % 32 != 0) ? align(req_size) + 16 : align(req_size);
+
+        // Allocatee
+        if(!allocate_page(req_size)){
             return NULL;
         }
     }
+
+    // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
+    // while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
+    //     if(!allocate_page(32768)){
+    //         printf("Page allocation failed during malloc");
+    //         return NULL;
+    //     }
+    // }
 
     // place the block at the top of the heap
     allocated_size = place((void*)TOH, block_size);

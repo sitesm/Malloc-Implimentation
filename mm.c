@@ -191,7 +191,7 @@ void* malloc(size_t size){
     // Allocate more memory if needed
     if(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
         // get size needed
-        size_t req_size = PtI((char*)mem_heap_hi() + 8) - PtI(tmp_pos);
+        size_t req_size = PtI(tmp_pos) - PtI((char*)mem_heap_hi() + 8);
 
         // Make it divisable by 32
         req_size = (align(req_size) % 32 != 0) ? align(req_size) + 16 : align(req_size);

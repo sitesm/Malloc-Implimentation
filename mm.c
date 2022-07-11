@@ -919,7 +919,7 @@ void* find_fit(size_t block_size){
         idx++;
 
         // If max index is surpassed
-        if(idx > 11){
+        if(idx >= 13){
             return NULL;
         }
 
@@ -946,7 +946,7 @@ void* find_fit(size_t block_size){
         }
 
         // If max index is surpassed
-        if(idx > 11){
+        if(idx >= 13){
             return NULL;
         }
     }

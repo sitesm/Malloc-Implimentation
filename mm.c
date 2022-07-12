@@ -952,7 +952,6 @@ void* find_fit(size_t block_size){
     // Store the best size and pointer 
     size_t best_size = 9999999999999; // Max size_t number
     void* best_pointer = NULL;
-    int first_hit = -1;
 
     // Get the index
     int idx = get_index(block_size);
@@ -988,9 +987,6 @@ void* find_fit(size_t block_size){
             if(size > block_size && size < best_size){
                 best_size = size;
                 best_pointer = succ;
-
-                // Searches through only this list[idx] once it gets a first hit
-                first_hit = idx;
             }
         }
 
@@ -998,7 +994,7 @@ void* find_fit(size_t block_size){
         succ = ItP(get(succ + 8));
 
         // End of free list, go to next list
-        if(succ == NULL && first_hit != -1){
+        if(succ == NULL){
             idx++;
 
             // If max index is surpassed

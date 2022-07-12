@@ -197,14 +197,6 @@ void* malloc(size_t size){
         }
     }
 
-    // // allocate page if tmp_pos exceeds the current heap size (Minus the epilogue header) 
-    // while(tmp_pos > (void*)((char*)mem_heap_hi() - 8)){
-    //     if(!allocate_page(32768)){
-    //         printf("Page allocation failed during malloc");
-    //         return NULL;
-    //     }
-    // }
-    
     // place the block at the top of the heap
     allocated_size = place((void*)TOH, block_size);
 

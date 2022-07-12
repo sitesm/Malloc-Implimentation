@@ -884,7 +884,7 @@ size_t place(void* payload_pointer, size_t block_size){
     int old_idx = get_index(old_size);
 
     // If the remaining block is going to be smaller than the minimum block size
-    if(remainder < 16){
+    if(remainder < 48){
         // set the header and footer of the whole allocated block
         put(GHA(payload_pointer), pack(old_size, 1));
         put(GFA(payload_pointer), pack(old_size, 1)); 

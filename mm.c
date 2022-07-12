@@ -189,8 +189,8 @@ void* malloc(size_t size){
     void *tmp_pos = TOH + block_size; 
 
     // Allocate the required size
-    if(tmp_pos >= (void*)((char*)mem_heap_hi() + 1)){ // Extends past last byte of
-        size_t req_size = align(PtI(tmp_pos) - PtI(mem_heap_hi()) + 9); // +9: + 8:Epilogue, +1 if statment offset
+    if(tmp_pos >= (void*)((char*)mem_heap_hi() - 8)){ // Extends past last byte of
+        size_t req_size = align(PtI(tmp_pos) - PtI(mem_heap_hi())); // +9: + 8:Epilogue, +1 if statment offset
         if(!allocate_page(req_size)){
             printf("Page allocation failed during malloc");
             return NULL;
@@ -205,7 +205,7 @@ void* malloc(size_t size){
     //     }
     // }
 
-    if(TOH )
+    if(TOH)
     // place the block at the top of the heap
     allocated_size = place((void*)TOH, block_size);
 
@@ -240,7 +240,7 @@ void free(void* payload_pointer)
         put(GFA(payload_pointer), pack(size, 0));
 
         // Edge case: the block you are trying to free is right before the TOH
-        if((char*)payload_pointer + size == TOH && !get_alloc(GHA(TOH))){
+        if((char*)payload_pointer + size == TOH){
             TOH = coalesce(payload_pointer);
         }else{
             coalesce(payload_pointer); 

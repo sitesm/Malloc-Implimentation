@@ -6,28 +6,80 @@
  * Date: 06/15/2022
  *
  *                                        MALLOC DESIGN DESCRIPTION
- * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
- * In this first implimentation, I decided to create a LIFO explicit free list memory allocator.
- * I decided to go this route so that I could understand the basics of making an explicit free
- * list before I move forward and change to a segregated free list to increase memory utilazation.
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+ * In my final implimentation, I decided to refactor my code from being an explicit free list to a segregated free list. 
+ * This change was prompted by the need for better memory utilization and faster throughput. 
  * 
+ * mm_init():
+ * -----------
+ * Initially, my allocator allocated 32 bytes for the prologue block (16 bytes), epilogue block (8 bytes), and unused block (8 bytes).
+ * After this, the memory allocator assigns an initial 4KB of heap area. The free roots and TOH(top of heap) pointers are 
+ * reset after every call to mm_init().
+ * 
+ * mm_malloc():
+ * ------------
  * In Malloc, the free list is always searched for a suitable block before adding the block to the top
- * of the heap. When searching, this allocator uses a first fit system.
+ * of the heap. When searching, this allocator uses a first fit system which, by using a segregated freee list, is also
+ * a best fit system by definition. The free lists are laid out in such a way that the first few lists are "quicklists",
+ * which do up by multiples of 16. This is because many files only allocated and freed smaller sized blocks. After these
+ * quick lists, it begins chunking block sizes together by powers of 2.
  * 
- * I decided to coalesce the free blocks during calls to free. This way, all free blocks are at the 
- * largest size possible before any attempt is made to allocate to them.
+ * The free block has a header, footer, and at minimum, 16 bytes of payload area. These 16 bytes allow for the doubly
+ * linked linked list to have places for their pointers. The free block is laid out as seen below:
  * 
- * Realloc uses the implimentation of malloc to first create a new memory region, then memcopy the memory 
- * from the old block to the new block, depending on its size.
+ *                                             +------------+
+ *                                             |   Header   |  <--- Size + Allocation
+ *                                             +------------+
+ *                                             |  Previous  |  <---+
+ *                                             +------------+      |--- Payload(16 bytes minimum)
+ *                                             |    Next    |  <---+
+ *                                             +------------+      
+ *                                             |   Footer   |  <--- Size + Allocation
+ *                                             +------------+
+ *                                     
+ * When no free block is found and the allocator must aquire more memory, it first determines the minimum ammount of
+ * bytes required to keep the heap in allignment, then extends the heap by that many bytes. This helps with memory util.
  * 
- * When no free block is found and the allocator must aquire more memory from the OS, it does so in a page 
- * granularity of 1 MiB. In the final submission, this value will change based on maximal throughput/memory util
+ * mm_free():
+ * ----------
+ * I decided to coalesce the free blocks during calls to free, this way, all free blocks are at the largest size possible 
+ * before any attempt is made to allocate to them. The free call simply sets the allocation status to not-allocated, then
+ * coalesces that payload pointer. 
  * 
+ * coalesce():
+ * -----------
+ * Coalesce is, by far, the most important and logic intensive function in this entire project. Coalesce first check for
+ * one of 4 cases:
+ * 
+ *      1) If the previous and next blocks are allocated: Coalesce simply places the newly freed  block at the begining of 
+ *         the correct free list.
+ * 
+ *      2) If previous is not allocated and next is:  Coalesce removes the next block from its free list and then
+ *         adds the newly coalesced block to the correct free list.
+ * 
+ *      3) If previous is allocated and next not is:  Coalesce removes the previous block from its free list and then
+ *         adds the newly coalesced block to the correct free list.
+ * 
+ *      4) If the previous and next blocks are not allocated: In this case, coalesce check to see if the prev/next blocks
+ *         have the same index. If they do, it correctly removes both of them from the shared free list. If they dont,
+ *         coalesce removes each block from its correct free list. After they old blocks are removed, the newly coalesced
+ *         block is added to the correct free list.
+ * 
+ * mm_realloc():
+ * -------------
+ * Realloc check a few things before deciding where to palce the block. First, it checks to see if the remining bytes
+ * will be larger than the minimum block size (32 bytes); if so, it reallocated the same block. If the remaning bytes 
+ * larger than the minimum block size, it will split and add the remaining bytes to the appropriate free list. Finally,
+ * if not block is found that can fit the new allocation size, it calls malloc, copies the old information over, then 
+ * frees the old block.
+ * 
+ * place():
+ * --------
  * Placing blocks in a free block is done through the place function. This function allocatees a block at the given
  * address. In place, it check to see if the remainder is smaller than the minimum block size (32 bytes); if so, it 
  * allocates the whole free block, otherwise it splices the block and places the unused bytes at the begining of the 
  * free list.
- * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=
+ * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  */
 
 #include <assert.h>

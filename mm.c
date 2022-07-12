@@ -48,7 +48,7 @@
  * 
  * coalesce():
  * -----------
- * Coalesce is, by far, the most important and logic intensive function in this entire project. Coalesce first check for
+ * Coalesce is, by far, the most important and logic intensive function in this entire project. Coalesce check for
  * one of 4 cases:
  * 
  *      1) If the previous and next blocks are allocated: Coalesce simply places the newly freed  block at the begining of 
@@ -191,7 +191,7 @@ bool mm_init(void){
     put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
-    if(!allocate_page(4096)){
+    if(!allocate_page(32768)){
         printf("Initial page allocation failed\n");
         return false;
     }

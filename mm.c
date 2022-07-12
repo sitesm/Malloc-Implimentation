@@ -204,8 +204,7 @@ void* malloc(size_t size){
     //         return NULL;
     //     }
     // }
-
-    if(TOH)
+    
     // place the block at the top of the heap
     allocated_size = place((void*)TOH, block_size);
 

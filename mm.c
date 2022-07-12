@@ -208,7 +208,6 @@ void* malloc(size_t size){
     dbg_printf("----- Payload pointer : %p\n", payload_pointer);
     mm_checkheap(__LINE__);
     
-
     // return payload location 
     return (TOH - allocated_size);
 }

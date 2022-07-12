@@ -949,6 +949,10 @@ size_t place(void* payload_pointer, size_t block_size){
 */
 void* find_fit(size_t block_size){
 
+    // Store the best size and pointer 
+    size_t best_size = 18446744073709551615; // Max size_t number
+    void* best_pointer = NULL;
+
     // Get the index
     int idx = get_index(block_size);
 
@@ -974,11 +978,19 @@ void* find_fit(size_t block_size){
         size_t size = get_size(GHA(succ));
 
         // check if its large enough
-        if(size >= block_size){
+        if(size == block_size){
             return (void*)succ;
         }
+        // Perform a best fit 
+        else 
+            // If the size is big enough and is smaller than the previous best size
+            if(size > block_size && size < best_size){
+                best_size = size;
+                best_pointer = succ;
+            }
+        }
 
-        // if not big enough, go to next free block in the seg free list
+        // go to next free block in the seg free list
         succ = ItP(get(succ + 8));
 
         // End of free list, go to next list
@@ -987,14 +999,15 @@ void* find_fit(size_t block_size){
 
             // If max index is surpassed
             if(idx >= 15){
-                return NULL;
+               break;
             }
+
             succ = free_root[idx];
         }
     }
 
-    // no block found
-    return NULL;
+    // Return the best block
+    return best_pointer;
 }
 
 /*

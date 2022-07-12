@@ -950,7 +950,7 @@ size_t place(void* payload_pointer, size_t block_size){
 void* find_fit(size_t block_size){
 
     // Store the best size and pointer 
-    size_t best_size = 18446744073709551615; // Max size_t number
+    size_t best_size = 9999999999999; // Max size_t number
     void* best_pointer = NULL;
 
     // Get the index
@@ -982,7 +982,7 @@ void* find_fit(size_t block_size){
             return (void*)succ;
         }
         // Perform a best fit 
-        else 
+        else{ 
             // If the size is big enough and is smaller than the previous best size
             if(size > block_size && size < best_size){
                 best_size = size;
@@ -999,9 +999,8 @@ void* find_fit(size_t block_size){
 
             // If max index is surpassed
             if(idx >= 15){
-               break;
+                break;
             }
-
             succ = free_root[idx];
         }
     }

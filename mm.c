@@ -191,7 +191,7 @@ bool mm_init(void){
     put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
-    if(!allocate_page(32768)){
+    if(!allocate_page(65536)){
         printf("Initial page allocation failed\n");
         return false;
     }

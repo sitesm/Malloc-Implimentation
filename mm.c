@@ -189,8 +189,8 @@ void* malloc(size_t size){
     void *tmp_pos = TOH + block_size; 
 
     // Allocate the required size
-    if(tmp_pos >= (void*)((char*)mem_heap_hi() - 8)){ // Extends past last byte of
-        size_t req_size = align(PtI(tmp_pos) - PtI(mem_heap_hi())); // +9: + 8:Epilogue, +1 if statment offset
+    if(tmp_pos >= (void*)((char*)mem_heap_hi() - 8)){ 
+        size_t req_size = align(PtI(tmp_pos) - PtI(mem_heap_hi())); 
         if(!allocate_page(req_size)){
             printf("Page allocation failed during malloc");
             return NULL;
@@ -970,44 +970,35 @@ void* ItP(size_t ptr_int){
 * get_index: Takes in a block size and returns which free root index it is in 
 */
 int get_index(size_t block_size){
-    // Get index and correct to start at index 0
-    // if(block_size < 32){
-    //     return 0;
-    // }else if(block_size >= 65536){
-    //     return 12;
-    // }else{
-    //     return((int)floor(log2(block_size)) - 4);
-    // }
 
-    if(block_size < 32){
+    // Block will never be smaller then 32
+    if(block_size == 32){
         return 0;
-    }else if(block_size == 32){
-        return 1;
     }else if(block_size == 48){
-        return 2;
+        return 1;
     }else if(block_size == 64){
-        return 3;
+        return 2;
     }else if(block_size == 80){
-        return 4;
+        return 3;
     }else if(block_size == 96){
-        return 5;
+        return 4;
     }else if(block_size == 112){
-        return 6;
+        return 5;
     }else if(block_size == 128){
-        return 7;
+        return 6;
     }else if(128 < block_size && block_size < 256){
-        return 8;
+        return 7;
     }else if(256 <= block_size && block_size < 512){
-        return 9;
+        return 8;
     }else if(512 <= block_size && block_size < 1024){
-        return 10;
+        return 9;
     }else if(1024 <= block_size && block_size < 4096){
-        return 11;
+        return 10;
     }else if(4096 <= block_size && block_size < 16384){
-        return 12;
+        return 11;
     }else if(16384 <= block_size && block_size < 66536){
-        return 13;
+        return 12;
     }else{
-        return 14;
+        return 13;
     }
 }

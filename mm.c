@@ -96,7 +96,7 @@ static void* ItP(size_t ptr_int);
 static int get_index(size_t block_size);
 
 /* Global Variables: Only allowed 128 bytes */
-char *free_root[13]; 
+char *free_root[15]; 
 static char *TOH = NULL; // Next free payload pointer of the never allocated heap area
 
 /* 
@@ -112,7 +112,7 @@ static size_t align(size_t x){
 bool mm_init(void){
 
     // Reset all free_roots to null because traces are ran twice
-    for(int i = 0; i<13; i++){
+    for(int i = 0; i<15; i++){
         free_root[i] = NULL;
     }
 
@@ -915,7 +915,7 @@ void* find_fit(size_t block_size){
         idx++;
 
         // If max index is surpassed
-        if(idx >= 13){
+        if(idx >= 15){
             return NULL;
         }
 
@@ -942,7 +942,7 @@ void* find_fit(size_t block_size){
         }
 
         // If max index is surpassed
-        if(idx >= 13){
+        if(idx >= 15){
             return NULL;
         }
     }

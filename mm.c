@@ -5,7 +5,7 @@
  * SID: mjs7938
  * Date: 06/15/2022
  *
- *                                        MALLOC DESIGN DESCRIPTION
+ *                                                   MALLOC DESIGN DESCRIPTION
  * =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
  * In my final implimentation, I decided to refactor my code from being an explicit free list to a segregated free list. 
  * This change was prompted by the need for better memory utilization and faster throughput. 
@@ -326,6 +326,7 @@ void* realloc(void* oldptr, size_t size)
 
         // Realloc is shrunk, and the remaining bytes > minimum block size
         else if(remainder >= 32){
+
             // Set the header and footer of the newly the allocated block
             put(GHA(oldptr), pack(block_size, 1));
             put(GFA(oldptr), pack(block_size, 1)); 
@@ -907,7 +908,7 @@ size_t place(void* payload_pointer, size_t block_size){
         return old_size;
     }else{ // Only split if remainder >= 32
 
-        // set the header and footer of the just the allocated block
+        // set the header and footer of the newly the allocated block
         put(GHA(payload_pointer), pack(block_size, 1));
         put(GFA(payload_pointer), pack(block_size, 1)); 
 
@@ -1030,62 +1031,62 @@ void* ItP(size_t ptr_int){
 int get_index(size_t block_size){
 
     // Block will never be smaller then 32
-    // if(block_size == 32){
-    //     return 0;
-    // }else if(block_size == 48){
-    //     return 1;
-    // }else if(block_size == 64){
-    //     return 2;
-    // }else if(block_size == 80){
-    //     return 3;
-    // }else if(block_size == 96){
-    //     return 4;
-    // }else if(block_size == 112){
-    //     return 5;
-    // }else if(block_size == 128){
-    //     return 6;
-    // }else if(128 < block_size && block_size < 256){
-    //     return 7;
-    // }else if(256 <= block_size && block_size < 512){
-    //     return 8;
-    // }else if(512 <= block_size && block_size < 1024){
-    //     return 9;
-    // }else if(1024 <= block_size && block_size < 4096){
-    //     return 10;
-    // }else if(4096 <= block_size && block_size < 16384){
-    //     return 11;
-    // }else if(16384 <= block_size && block_size < 66536){
-    //     return 12;
-    // }else{
-    //     return 13;
-    // }
+    if(block_size == 32){
+        return 0;
+    }else if(block_size == 48){
+        return 1;
+    }else if(block_size == 64){
+        return 2;
+    }else if(block_size == 80){
+        return 3;
+    }else if(block_size == 96){
+        return 4;
+    }else if(block_size == 112){
+        return 5;
+    }else if(block_size == 128){
+        return 6;
+    }else if(128 < block_size && block_size < 256){
+        return 7;
+    }else if(256 <= block_size && block_size < 512){
+        return 8;
+    }else if(512 <= block_size && block_size < 1024){
+        return 9;
+    }else if(1024 <= block_size && block_size < 4096){
+        return 10;
+    }else if(4096 <= block_size && block_size < 16384){
+        return 11;
+    }else if(16384 <= block_size && block_size < 66536){
+        return 12;
+    }else{
+        return 13;
+    }
 
     // Attempt 2
-    if(32 <= block_size && block_size <= 64){
-        return 0;
-    }else if(65<= block_size && block_size <= 128){
-        return 1;
-    }else if(129<= block_size && block_size <= 256){
-        return 2;
-    }else if(257<= block_size && block_size <= 512){
-        return 3;
-    }else if(513<= block_size && block_size <= 1024){
-        return 4;
-    }else if(1025<= block_size && block_size <= 2048){
-        return 5;
-    }else if(2049<= block_size && block_size <= 4096){
-        return 6;
-    }else if(4097<= block_size && block_size <= 8192){
-        return 7;
-    }else if(8193<= block_size && block_size <= 16384){
-        return 8;
-    }else if(16385<= block_size && block_size <= 32768){
-        return 9;
-    }else if(32769 <= block_size && block_size <= 66536){
-        return 10;
-    }else if(65537 <= block_size && block_size <= 131072){
-        return 11;
-    }else{
-        return 12;
-    }
+    // if(32 <= block_size && block_size <= 64){
+    //     return 0;
+    // }else if(65<= block_size && block_size <= 128){
+    //     return 1;
+    // }else if(129<= block_size && block_size <= 256){
+    //     return 2;
+    // }else if(257<= block_size && block_size <= 512){
+    //     return 3;
+    // }else if(513<= block_size && block_size <= 1024){
+    //     return 4;
+    // }else if(1025<= block_size && block_size <= 2048){
+    //     return 5;
+    // }else if(2049<= block_size && block_size <= 4096){
+    //     return 6;
+    // }else if(4097<= block_size && block_size <= 8192){
+    //     return 7;
+    // }else if(8193<= block_size && block_size <= 16384){
+    //     return 8;
+    // }else if(16385<= block_size && block_size <= 32768){
+    //     return 9;
+    // }else if(32769 <= block_size && block_size <= 66536){
+    //     return 10;
+    // }else if(65537 <= block_size && block_size <= 131072){
+    //     return 11;
+    // }else{
+    //     return 12;
+    // }
 }

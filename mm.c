@@ -1100,19 +1100,19 @@ int get_index(size_t block_size){
         return 5;
     }else if(block_size == 128){
         return 6;
-    }else if(block_size == 256){
+    }else if(block_size == 272){
         return 7;
-    }else if(block_size == 512){
+    }else if(block_size == 528){
         return 8;
-    }else if(block_size == 1024){
+    }else if(block_size == 1040){
         return 9;
-    }else if(block_size == 2048){
+    }else if(block_size == 2064){
         return 10;
-    }else if(block_size == 4096){
+    }else if(block_size == 4112){
         return 11;
-    }else if(block_size == 8192){
+    }else if(block_size == 8208){
         return 12;
-    }else if(block_size == 16384){
+    }else if(block_size == 16400){
         return 13;
     }else{
         return 14;

@@ -241,7 +241,7 @@ void* malloc(size_t size){
 
     // Allocate the minimum required size if more space is needed
     if(tmp_pos >= (void*)((char*)mem_heap_hi() + 1)){ 
-        size_t req_size = align(PtI(tmp_pos) - PtI((char*)mem_heap_hi() + 1)); 
+        size_t req_size = align(PtI(tmp_pos) - PtI((char*)mem_heap_hi())); 
         if(!allocate_page(req_size)){
             printf("Page allocation failed");
             return NULL;

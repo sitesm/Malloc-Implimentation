@@ -191,10 +191,10 @@ bool mm_init(void){
     put(mem_brk + 24 , pack(0, 1));
 
     // Allocate the first free block
-    if(!allocate_page(65536)){
-        printf("Initial page allocation failed\n");
-        return false;
-    }
+    // if(!allocate_page(65536)){
+    //     printf("Initial page allocation failed\n");
+    //     return false;
+    // }
 
     return true;
 }
@@ -397,40 +397,42 @@ bool mm_checkheap(int lineno)
 #ifdef DEBUG
     dbg_printf("\nChecking Heap...\n");
 
-    int idx = 0;
     // Vars for checking free list 
+    int idx = 0;
     char* next_free = free_root[idx];
     char* pred = NULL;
-
+    bool consistent = true;
     // Vars for checking allocated blocks (first block)
     // char* next_allocated = (char*)0x7efff72e7020; 
 
     // Checks the free list
     while(next_free != NULL){
 
+        // Check if each free block is a valid heap address
+        if(!in_heap(next_free)){
+            dbg_printf("Address %p is not a valid heap address (%p:%p)", next_free, mem_heap_lo(), (char*)mem_heap_hi() + 1);
+            consistent = false;
+        }
         // Check each free block is actualy freed
         if(get_alloc(GHA(next_free)) != 0){
-            dbg_printf("Check heap: address %p is currently allocated and pointed to by %p\n", next_free, pred);
-            return false;
+            dbg_printf("Address %p is currently allocated and pointed to by %p\n", next_free, pred);
+            consistent = false;
         }
 
-        // Check free list
-        if(!in_heap(next_free)){
-            dbg_printf("free root (%p) is not in heap at line %d\n", next_free, lineno);
-        }else if(!in_heap(ItP(get(next_free + 8))) && ItP(get(next_free + 8)) != NULL ){
-            dbg_printf("succ(free root) (OFR = %p, FR = %p) is not in heap at line %d\n", ItP(get(next_free + 8)), next_free, lineno);
+        // Headers and footers match 
+        if(get(GHA(next_free)) != get(GFA(next_free))){
+            dbg_printf("Header and footer of payload pointer %p do not match", next_blk);
+            consistent = false;
         }
 
-        // // Headers and footers match 
-        // if(get(GHA(next_blk)) != get(GFA(next_blk))){
-        //     dbg_printf("Header and footer of payload pointer %p do not match", next_blk);
-        // }
-        // // Contiguious memory escaped coalescing
-        // if(!get_alloc(GHA(prev_blk(next_free)))){
-        //     dbg_printf("Previous block at %p is free: Contigious memory", prev_blk(next_free));
-        // }else if(!get_alloc(GHA(next_blk(next_free)))){
-        //     dbg_printf("Next block at %p is free: Contigious memory", next_blk(next_free));
-        // }
+        // Contiguious memory escaped coalescing
+        if(!get_alloc((char*)GHA(next_free) - 8)){
+            dbg_printf("Previous block at %p is free: Contigious memory", next_free);
+            consistent = false;
+        }else if(!get_alloc((char*)GFA(next_free) + 8)){
+            dbg_printf("Next block at %p is free: Contigious memory", next_free);
+            consistent = false;
+        }
 
         // go to next free block
         pred = next_free;
@@ -441,24 +443,17 @@ bool mm_checkheap(int lineno)
             next_free = free_root[idx];
         }
 
-        if(idx > 12){
+        if(idx >= 15){
             break;
         }
     }
 
-    // // Check allocated blocks (not needed right now)
-    // while(next_allocated != mem_heap_hi() + 1){
-    //     // Get the next block
-    //     void* next_block = next_blk(next_allocated);
-    //     if(get_alloc(GHA(next_block))){
-    //         if((char*)next_block - 8 < (next_allocated + get_size(GHA(next_allocated)))){
-    //             dbg_printf("Overlapping allocated bytes");
-    //         }
-    //     }
-    //     next_allocated = next_block;
-    // }
-
-    dbg_printf("Heap is consistent at line %d\n", lineno);
+    if(consistent){
+        dbg_printf("Heap is consistent at line %d\n", lineno);
+    }else{
+        dbg_printf("Heap is not consistent!");
+        return false;
+    }
 #endif /* DEBUG */
     return true;
 }

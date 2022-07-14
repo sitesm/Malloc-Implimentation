@@ -980,7 +980,7 @@ void* find_fit(size_t block_size){
         // Perform a best fit 
         else{ 
             // If the size is big enough and is smaller than the previous best size
-            if(size > block_size && size < best_size){
+            if(size >= block_size && size < best_size){
                 best_size = size;
                 best_pointer = succ;
             }
@@ -1026,35 +1026,35 @@ void* ItP(size_t ptr_int){
 int get_index(size_t block_size){
 
     // Block will never be smaller then 32
-    if(block_size == 32){
-        return 0;
-    }else if(block_size == 48){
-        return 1;
-    }else if(block_size == 64){
-        return 2;
-    }else if(block_size == 80){
-        return 3;
-    }else if(block_size == 96){
-        return 4;
-    }else if(block_size == 112){
-        return 5;
-    }else if(block_size == 128){
-        return 6;
-    }else if(128 < block_size && block_size < 256){
-        return 7;
-    }else if(256 <= block_size && block_size < 512){
-        return 8;
-    }else if(512 <= block_size && block_size < 1024){
-        return 9;
-    }else if(1024 <= block_size && block_size < 4096){
-        return 10;
-    }else if(4096 <= block_size && block_size < 16384){
-        return 11;
-    }else if(16384 <= block_size && block_size < 66536){
-        return 12;
-    }else{
-        return 13;
-    }
+    // if(block_size == 32){
+    //     return 0;
+    // }else if(block_size == 48){
+    //     return 1;
+    // }else if(block_size == 64){
+    //     return 2;
+    // }else if(block_size == 80){
+    //     return 3;
+    // }else if(block_size == 96){
+    //     return 4;
+    // }else if(block_size == 112){
+    //     return 5;
+    // }else if(block_size == 128){
+    //     return 6;
+    // }else if(128 < block_size && block_size < 256){
+    //     return 7;
+    // }else if(256 <= block_size && block_size < 512){
+    //     return 8;
+    // }else if(512 <= block_size && block_size < 1024){
+    //     return 9;
+    // }else if(1024 <= block_size && block_size < 4096){
+    //     return 10;
+    // }else if(4096 <= block_size && block_size < 16384){
+    //     return 11;
+    // }else if(16384 <= block_size && block_size < 66536){
+    //     return 12;
+    // }else{
+    //     return 13;
+    // }
 
     // Attempt 2
     // if(32 <= block_size && block_size <= 64){
@@ -1084,4 +1084,37 @@ int get_index(size_t block_size){
     // }else{
     //     return 12;
     // }
+
+    // Attempt #3
+    if(block_size == 32){
+        return 0;
+    }else if(block_size == 48){
+        return 1;
+    }else if(block_size == 64){
+        return 2;
+    }else if(block_size == 80){
+        return 3;
+    }else if(block_size == 96){
+        return 4;
+    }else if(block_size == 112){
+        return 5;
+    }else if(block_size == 128){
+        return 6;
+    }else if(block_size == 256){
+        return 7;
+    }else if(block_size == 512){
+        return 8;
+    }else if(block_size == 1024){
+        return 9;
+    }else if(block_size == 2048){
+        return 10;
+    }else if(block_size == 4096){
+        return 11;
+    }else if(block_size == 8192){
+        return 12;
+    }else if(block_size == 16384){
+        return 13;
+    }else{
+        return 14;
+    }
 }

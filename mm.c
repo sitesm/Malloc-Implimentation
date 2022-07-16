@@ -147,8 +147,8 @@ static size_t PtI(void* pointer);
 static void* ItP(size_t ptr_int);
 static int get_index(size_t block_size);
 
-/* Global Variables: 15 free root pointers + 1 TOH pointer = 128 bytes */
-char *free_root[15];  
+/* Global Variables: 14 free root pointers + 1 TOH pointer = 120 bytes */
+char *free_root[14];  
 static char *TOH = NULL; // Next free payload pointer of the never allocated heap area
 
 /* 
@@ -164,7 +164,7 @@ static size_t align(size_t x){
 bool mm_init(void){
 
     // Reset all free_roots to null 
-    for(int i = 0; i<15; i++){
+    for(int i = 0; i<14; i++){
         free_root[i] = NULL;
     }
 
@@ -176,7 +176,7 @@ bool mm_init(void){
 
     // Initial allocation failed
     if(mem_brk == NULL || *(int*)mem_brk == -1){
-        printf("Initial 16 byte allocation failed\n");
+        printf("Initial 32 byte allocation failed\n");
         return false;
     }
 
@@ -402,8 +402,6 @@ bool mm_checkheap(int lineno)
     char* next_free = free_root[idx];
     char* pred = NULL;
     bool consistent = true;
-    // Vars for checking allocated blocks (first block)
-    // char* next_allocated = (char*)0x7efff72e7020; 
 
     // Checks the free list
     while(next_free != NULL){
@@ -413,6 +411,7 @@ bool mm_checkheap(int lineno)
             dbg_printf("Address %p is not a valid heap address (%p:%p)", next_free, mem_heap_lo(), (char*)mem_heap_hi() + 1);
             consistent = false;
         }
+
         // Check each free block is actualy freed
         if(get_alloc(GHA(next_free)) != 0){
             dbg_printf("Address %p is currently allocated and pointed to by %p\n", next_free, pred);
@@ -427,10 +426,10 @@ bool mm_checkheap(int lineno)
 
         // Contiguious memory escaped coalescing
         if(!get_alloc((char*)GHA(next_free) - 8)){
-            dbg_printf("Previous block at %p is free: Contigious memory", next_free);
+            dbg_printf("Previous block at %p is also free: Contigious memory", next_free);
             consistent = false;
         }else if(!get_alloc((char*)GFA(next_free) + 8)){
-            dbg_printf("Next block at %p is free: Contigious memory", next_free);
+            dbg_printf("Next block at %p is also free: Contigious memory", next_free);
             consistent = false;
         }
 
@@ -438,12 +437,14 @@ bool mm_checkheap(int lineno)
         pred = next_free;
         next_free = ItP(get(next_free + 8));   
 
+        // If we are at the eend of one free list
         if(next_free == NULL){
             idx ++;
             next_free = free_root[idx];
         }
 
-        if(idx >= 15){
+        // Make sure we doing overrun the array
+        if(idx >= 14){
             break;
         }
     }
@@ -451,8 +452,8 @@ bool mm_checkheap(int lineno)
     if(consistent){
         dbg_printf("Heap is consistent at line %d\n", lineno);
     }else{
-        dbg_printf("Heap is not consistent!");
-        return false;
+        dbg_printf("Heap is not consistent at line %d\n!", lineno);
+        // return false; Just let it return true with the err msg
     }
 #endif /* DEBUG */
     return true;
@@ -960,7 +961,7 @@ void* find_fit(size_t block_size){
         idx++;
 
         // If max index is surpassed
-        if(idx >= 15){
+        if(idx >= 14){
             return NULL;
         }
 
@@ -994,7 +995,7 @@ void* find_fit(size_t block_size){
             idx++;
 
             // If max index is surpassed
-            if(idx >= 15){
+            if(idx >= 14){
                 break;
             }
             succ = free_root[idx];
@@ -1055,66 +1056,4 @@ int get_index(size_t block_size){
     }else{
         return 13;
     }
-
-    // Attempt 2
-    // if(32 <= block_size && block_size <= 64){
-    //     return 0;
-    // }else if(65<= block_size && block_size <= 128){
-    //     return 1;
-    // }else if(129<= block_size && block_size <= 256){
-    //     return 2;
-    // }else if(257<= block_size && block_size <= 512){
-    //     return 3;
-    // }else if(513<= block_size && block_size <= 1024){
-    //     return 4;
-    // }else if(1025<= block_size && block_size <= 2048){
-    //     return 5;
-    // }else if(2049<= block_size && block_size <= 4096){
-    //     return 6;
-    // }else if(4097<= block_size && block_size <= 8192){
-    //     return 7;
-    // }else if(8193<= block_size && block_size <= 16384){
-    //     return 8;
-    // }else if(16385<= block_size && block_size <= 32768){
-    //     return 9;
-    // }else if(32769 <= block_size && block_size <= 66536){
-    //     return 10;
-    // }else if(65537 <= block_size && block_size <= 131072){
-    //     return 11;
-    // }else{
-    //     return 12;
-    // }
-
-    // Attempt #3
-    // if(block_size == 32){
-    //     return 0;
-    // }else if(block_size == 48){
-    //     return 1;
-    // }else if(block_size == 64){
-    //     return 2;
-    // }else if(block_size == 80){
-    //     return 3;
-    // }else if(block_size == 96){
-    //     return 4;
-    // }else if(block_size == 112){
-    //     return 5;
-    // }else if(block_size == 128){
-    //     return 6;
-    // }else if(block_size == 272){
-    //     return 7;
-    // }else if(block_size == 528){
-    //     return 8;
-    // }else if(block_size == 1040){
-    //     return 9;
-    // }else if(block_size == 2064){
-    //     return 10;
-    // }else if(block_size == 4112){
-    //     return 11;
-    // }else if(block_size == 8208){
-    //     return 12;
-    // }else if(block_size == 16400){
-    //     return 13;
-    // }else{
-    //     return 14;
-    // }
 }
